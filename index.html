@@ -1,0 +1,1886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- iOS PWA Meta Tags -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="display" content="standalone">
+  <!-- PWA Enhancements -->
+  <meta name="theme-color" content="#ffffff">
+  <meta name="apple-mobile-web-app-title" content="PersonaSim AI">
+  <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+  <!-- Additional iOS Touch Icons for all devices + Precomposed -->
+  <link rel="apple-touch-icon" sizes="57x57" href="icon-57.png">
+  <link rel="apple-touch-icon" sizes="60x60" href="icon-60.png">
+  <link rel="apple-touch-icon" sizes="72x72" href="icon-72.png">
+  <link rel="apple-touch-icon" sizes="76x76" href="icon-76.png">
+  <link rel="apple-touch-icon" sizes="114x114" href="icon-114.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="icon-120.png">
+  <link rel="apple-touch-icon" sizes="144x144" href="icon-144.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="icon-167.png">
+  <link rel="apple-touch-icon-precomposed" href="icon-180.png"> <!-- precomposed for older iOS -->
+
+  <!-- Safari pinned-tab icon -->
+  <link rel="mask-icon" href="safari-pinned-tab.svg" color="#3b82f6">
+
+  <!-- Inline Web App Manifest for iOS 16.4+ support (Base64 encoded to keep single-file) -->
+  <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiUGVyc29uYVNpbSBBSSIsInNob3J0X25hbWUiOiJQZXJzb25hU2ltIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiI2YyZjJmNyIsInRoZW1lX2NvbG9yIjoiIzNiODJmNiIsImljb25zIjpbeyJzcmMiOiJpY29uLTE5Mi5wbmciLCJzaXplcyI6IjE5MngxOTIiLCJ0eXBlIjoiaW1hZ2UvcG5nIn0seyJzcmMiOiJpY29uLTUxMi5wbmciLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2UvcG5nIn1dfQ==">
+
+  <title>PersonaSim AI</title>
+
+  <!-- External Libraries (CDNs) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* iOS Specific Styling */
+    :root {
+      --safe-area-inset-top: env(safe-area-inset-top);
+      --safe-area-inset-bottom: env(safe-area-inset-bottom);
+
+      --ios-bg: #f2f2f7;
+      --ios-secondary-bg: #ffffff;
+      --ios-separator: rgba(60, 60, 67, 0.18);
+      --ios-label-secondary: rgba(60, 60, 67, 0.6);
+      --ios-label-tertiary: rgba(60, 60, 67, 0.3);
+      --ios-blue: #007aff;
+      --ios-red: #ff3b30;
+
+      --ios-radius-lg: 20px;
+      --ios-radius-xl: 28px;
+      --ios-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      --ios-ease: cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      background: var(--ios-bg);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+      background-color: var(--ios-bg);
+      user-select: none;
+      -webkit-touch-callout: none; /* Prevent long-press popup on iOS */
+      overscroll-behavior-y: none; /* Prevent iOS rubber-banding & pull-to-refresh on body */
+    }
+
+    /* Allow text selection and prevent auto-zoom in inputs for iOS */
+    input, textarea, select {
+      font-size: 16px !important; /* Forces 16px to stop iOS Safari zoom on focus */
+      -webkit-user-select: auto !important;
+      user-select: auto !important;
+      -webkit-touch-callout: default !important; /* Allow copy/paste popups inside inputs */
+    }
+
+    /* Force hardware acceleration and momentum scrolling on containers */
+    main, .overflow-y-auto, .flex-1.overflow-y-auto {
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .pb-safe { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+    .pt-safe { padding-top: max(1rem, env(safe-area-inset-top)); }
+
+    /* Hide scrollbar for clean UI */
+    ::-webkit-scrollbar { width: 0px; background: transparent; }
+
+    /* Markdown Styling */
+    .prose h1, .prose h2, .prose h3 { font-weight: 600; margin-top: 1em; margin-bottom: 0.5em; }
+    .prose ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; }
+    .prose li { margin-bottom: 0.25em; }
+    .prose strong { font-weight: 600; color: #000; }
+
+    /* ==================== NAV / PAGE TRANSITIONS ==================== */
+    .page-enter-active,
+    .page-leave-active {
+      transition: all 0.42s var(--ios-ease);
+    }
+    .page-enter-from {
+      opacity: 0;
+      transform: translateX(40px) scale(0.99);
+    }
+    .page-leave-to {
+      opacity: 0;
+      transform: translateX(-40px) scale(0.99);
+    }
+    .page-enter-active .tab-page {
+      transition-delay: 0.03s;
+    }
+
+    /* ==================== iOS SHEET (BOTTOM SHEET) TRANSITIONS ==================== */
+    /* 1. Only animate the transform (not opacity). Use snappy iOS timing (0.4s) */
+    .sheet-enter-active,
+    .sheet-leave-active {
+      transition: transform 0.4s var(--ios-ease);
+    }
+
+    /* 2. Slide 100% off the bottom of the screen instead of just 44px */
+    .sheet-enter-from,
+    .sheet-leave-to {
+      transform: translateY(100%);
+    }
+
+    .fade-enter-active,
+    .fade-leave-active {
+      transition: opacity 0.20s var(--ios-ease);
+    }
+    .fade-enter-from,
+    .fade-leave-to {
+      opacity: 0;
+    }
+
+    .pop-enter-active,
+    .pop-leave-active {
+      transition: transform 0.22s var(--ios-ease), opacity 0.22s var(--ios-ease);
+    }
+    .pop-enter-from,
+    .pop-leave-to {
+      transform: scale(0.96);
+      opacity: 0;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .page-enter-active,
+      .page-leave-active,
+      .sheet-enter-active,
+      .sheet-leave-active,
+      .fade-enter-active,
+      .fade-leave-active,
+      .pop-enter-active,
+      .pop-leave-active {
+        transition: none !important;
+      }
+    }
+
+    /* ==================== iOS GROUPED LIST LOOK ==================== */
+    .ios-section-title {
+      color: var(--ios-label-secondary);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      margin: 10px 8px 6px;
+    }
+
+    .ios-group {
+      background: var(--ios-secondary-bg);
+      border-radius: var(--ios-radius-lg);
+      box-shadow: 0 1px 0 rgba(0,0,0,0.03);
+      border: 1px solid rgba(0,0,0,0.04);
+      overflow: hidden;
+    }
+
+    .ios-cell {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      gap: 12px;
+      background: var(--ios-secondary-bg);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .ios-cell:active {
+      background: rgba(0,0,0,0.04);
+    }
+
+    .ios-sep {
+      height: 1px;
+      background: var(--ios-separator);
+      margin-left: 16px;
+    }
+
+    .ios-muted {
+      color: var(--ios-label-secondary);
+    }
+
+    .ios-subtle {
+      color: var(--ios-label-tertiary);
+    }
+
+    .ios-badge {
+      background: rgba(0,122,255,0.12);
+      color: var(--ios-blue);
+      border-radius: 999px;
+      padding: 2px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 20px;
+      white-space: nowrap;
+    }
+
+    /* iOS-style search field */
+    .ios-search-wrap {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .ios-search {
+      position: relative;
+      flex: 1;
+      background: rgba(118,118,128,0.12);
+      border-radius: 14px;
+      padding: 10px 12px 10px 34px;
+    }
+
+    .ios-search input {
+      width: 100%;
+      background: transparent;
+      border: 0;
+      outline: none;
+      font-size: 16px !important;
+      color: #111827;
+    }
+
+    .ios-search .icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(60,60,67,0.45);
+    }
+
+    .ios-search .clear {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(60,60,67,0.45);
+      padding: 6px;
+      border-radius: 999px;
+    }
+
+    .ios-search .clear:active {
+      background: rgba(0,0,0,0.06);
+    }
+
+    .ios-cancel-btn {
+      color: var(--ios-blue);
+      font-weight: 600;
+      padding: 10px 6px;
+    }
+
+    .ios-cancel-btn:active {
+      opacity: 0.6;
+    }
+
+    /* ==================== Bottom Sheet + Backdrop ==================== */
+    .ios-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.28);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+    }
+
+    /* 3. Add a smooth spring-back transition to the base sheet class so it doesn't snap if a user aborts a drag */
+    .ios-sheet {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      max-height: min(92vh, calc(100vh - 28px));
+      background: var(--ios-bg);
+      border-top-left-radius: 22px;
+      border-top-right-radius: 22px;
+      box-shadow: var(--ios-shadow);
+      overflow: hidden;
+      padding-bottom: max(12px, env(safe-area-inset-bottom));
+      transition: transform 0.3s var(--ios-ease);
+    }
+
+    /* 4. Disable the transition ONLY while the user's finger is actively dragging it, so it sticks to their finger perfectly */
+    .ios-sheet.is-dragging {
+      transition: none !important;
+    }
+
+    .ios-sheet-inner {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      max-height: min(92vh, calc(100vh - 28px));
+    }
+
+    .ios-grabber {
+      width: 44px;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(60,60,67,0.22);
+      margin: 10px auto 6px;
+    }
+
+    .ios-sheet-header {
+      background: rgba(242,242,247,0.85);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--ios-separator);
+      padding-top: max(6px, env(safe-area-inset-top));
+      padding-left: 14px;
+      padding-right: 14px;
+      padding-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .ios-sheet-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #111827;
+      text-align: center;
+      flex: 1;
+    }
+
+    .ios-nav-btn {
+      color: var(--ios-blue);
+      font-weight: 600;
+      padding: 8px 10px;
+      border-radius: 12px;
+      min-width: 70px;
+      text-align: left;
+    }
+
+    .ios-nav-btn.right {
+      text-align: right;
+    }
+
+    .ios-nav-btn:active {
+      background: rgba(0,122,255,0.10);
+    }
+
+    /* ==================== iOS Alert / Action Sheet ==================== */
+    .ios-alert {
+      width: min(320px, calc(100vw - 28px));
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.22);
+      border: 1px solid rgba(0,0,0,0.06);
+    }
+
+    .ios-alert-body {
+      padding: 16px 16px 12px;
+      text-align: center;
+    }
+
+    .ios-alert-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 6px;
+    }
+
+    .ios-alert-message {
+      font-size: 13px;
+      color: rgba(60,60,67,0.78);
+      line-height: 1.35;
+      white-space: pre-wrap;
+    }
+
+    .ios-alert-actions {
+      border-top: 1px solid var(--ios-separator);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ios-alert-btn {
+      padding: 12px 10px;
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--ios-blue);
+      background: transparent;
+    }
+
+    .ios-alert-btn:active {
+      background: rgba(0,0,0,0.05);
+    }
+
+    .ios-alert-btn.destructive {
+      color: var(--ios-red);
+    }
+
+    .ios-action-sheet {
+      width: 100%;
+      padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+    }
+
+    .ios-action-card {
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.06);
+      box-shadow: 0 18px 50px rgba(0,0,0,0.22);
+    }
+
+    .ios-action-title {
+      padding: 14px 14px 8px;
+      text-align: center;
+    }
+
+    .ios-action-title .t {
+      font-size: 13px;
+      font-weight: 700;
+      color: rgba(60,60,67,0.78);
+      margin-bottom: 4px;
+    }
+
+    .ios-action-title .m {
+      font-size: 13px;
+      color: rgba(60,60,67,0.68);
+      white-space: pre-wrap;
+    }
+
+    .ios-action-btn {
+      width: 100%;
+      padding: 14px 10px;
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--ios-blue);
+      background: transparent;
+    }
+
+    .ios-action-btn:active {
+      background: rgba(0,0,0,0.06);
+    }
+
+    .ios-action-btn.destructive {
+      color: var(--ios-red);
+    }
+
+    .ios-action-sep {
+      height: 1px;
+      background: var(--ios-separator);
+    }
+
+    .ios-action-cancel {
+      margin-top: 10px;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.06);
+      box-shadow: 0 18px 50px rgba(0,0,0,0.22);
+    }
+
+    /* Selected list row (like iOS multiselect) */
+    .ios-selected {
+      background: rgba(0,122,255,0.10) !important;
+    }
+
+    .ios-check {
+      color: var(--ios-blue);
+      font-size: 18px;
+      min-width: 22px;
+      text-align: right;
+    }
+  </style>
+</head>
+
+<!-- ontouchstart="" is an iOS hack to instantly enable CSS :active pseudo-classes for buttons -->
+<body class="text-gray-900 overflow-hidden h-screen w-screen flex flex-col" ontouchstart="">
+<div id="app" class="h-full w-full flex flex-col">
+
+  <!-- Installation Hint Banner for iOS users -->
+  <div v-if="showInstallHint" class="fixed top-0 left-0 right-0 bg-blue-600 text-white text-sm p-3 flex items-center justify-between z-50 shadow-md">
+    <div class="flex items-center">
+      <i class="fa-solid fa-info-circle mr-2"></i>
+      <span>To install as a real app: Tap the Share button → "Add to Home Screen"</span>
+    </div>
+    <button @click="dismissInstallHint" class="text-white underline text-xs font-medium">Got it</button>
+  </div>
+
+  <!-- Header -->
+  <header class="bg-white/80 backdrop-blur-md border-b border-gray-200 pt-safe px-4 pb-3 flex justify-between items-end shrink-0 z-10">
+    <h1 class="text-xl font-semibold tracking-tight">{{ tabTitles[currentTab] }}</h1>
+
+    <!-- Account Icon when on Dashboard -->
+    <button v-if="currentTab === 'dashboard'" @click="setTab('account')" class="text-gray-400 hover:text-blue-500 transition-colors">
+      <i class="fa-solid fa-circle-user text-2xl"></i>
+    </button>
+
+    <button v-if="currentTab === 'personas'" @click="openForm()" class="text-blue-500 font-medium">
+      <i class="fa-solid fa-plus mr-1"></i> Add
+    </button>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 overflow-y-auto p-4 pb-24 relative">
+    <!-- GENERIC SMOOTH PAGE TRANSITION WRAPPER -->
+    <Transition name="page" mode="out-in">
+      <div :key="currentTab" class="tab-page h-full">
+
+        <!-- Dashboard - First Page -->
+        <div v-if="currentTab === 'dashboard'" class="space-y-6">
+          <!-- Greeting -->
+          <div class="text-center pt-8 pb-6">
+            <h2 class="text-3xl font-semibold text-gray-900">{{ greeting }}</h2>
+            <p class="text-gray-500 mt-1">Ready to simulate your team today?</p>
+          </div>
+          <!-- Stats Cards -->
+          <div class="grid grid-cols-2 gap-4">
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-xs text-gray-500 font-medium">TOTAL PERSONAS</p>
+                  <p class="text-4xl font-semibold text-blue-600 mt-1">{{ personas.length }}</p>
+                </div>
+                <i class="fa-solid fa-users text-4xl text-blue-200"></i>
+              </div>
+            </div>
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-xs text-gray-500 font-medium">SIMULATIONS RUN</p>
+                  <p class="text-4xl font-semibold text-blue-600 mt-1">{{ simulations.length }}</p>
+                </div>
+                <i class="fa-solid fa-brain text-4xl text-blue-200"></i>
+              </div>
+            </div>
+          </div>
+          <!-- Current Model Card -->
+          <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+            <p class="text-xs text-gray-500 font-medium">CURRENT LLM MODEL</p>
+            <p class="text-2xl font-semibold text-gray-900 mt-2">{{ settings.model || 'Not configured' }}</p>
+            <p class="text-sm text-gray-500">{{ settings.provider || '—' }}</p>
+          </div>
+          <!-- Quick Actions -->
+          <div class="space-y-3">
+            <button @click="setTab('simulate')" class="w-full bg-blue-600 text-white rounded-3xl py-4 font-semibold flex items-center justify-center gap-2 active:bg-blue-700 transition-colors">
+              <i class="fa-solid fa-bolt"></i>
+              Start New Simulation
+            </button>
+            <button @click="setTab('personas'); openForm()" class="w-full bg-white border border-gray-200 text-gray-900 rounded-3xl py-4 font-semibold flex items-center justify-center gap-2 active:bg-gray-50 transition-colors">
+              <i class="fa-solid fa-plus"></i>
+              Add New Persona
+            </button>
+            <button @click="setTab('history')" class="w-full bg-white border border-gray-200 text-gray-900 rounded-3xl py-4 font-semibold flex items-center justify-center gap-2 active:bg-gray-50 transition-colors">
+              <i class="fa-solid fa-clock-rotate-left"></i>
+              View All Simulations
+            </button>
+          </div>
+        </div>
+
+        <!-- TAB: PERSONAS -->
+        <div v-if="currentTab === 'personas'">
+          <div v-if="personas.length === 0" class="text-center mt-20 text-gray-500">
+            <i class="fa-solid fa-users text-5xl mb-4 text-gray-300"></i>
+            <p class="text-lg font-medium">No Personas Yet</p>
+            <p class="text-sm mt-1">Tap Add to build your team.</p>
+          </div>
+
+          <!-- Delete All button -->
+          <button v-if="personas.length > 0" @click="deleteAllPersonas" class="w-full mb-6 bg-red-50 text-red-600 rounded-2xl py-3.5 font-semibold text-sm active:bg-red-100 transition-colors shadow-sm">
+            Delete All Personas
+          </button>
+
+          <div class="ios-group">
+            <div v-for="(p, idx) in personas" :key="p.id">
+              <div @click="openForm(p)" class="ios-cell">
+                <div class="min-w-0">
+                  <h3 class="font-semibold text-[17px] truncate">{{ p.name }}</h3>
+                  <p class="text-[13px] ios-muted truncate">{{ p.title }} &bull; {{ p.office }}</p>
+                  <div v-if="p.tags || p.superiors || p.directReports" class="flex gap-1 mt-2 flex-wrap">
+                    <span v-for="tag in splitTags(p.tags)" class="bg-blue-50 text-blue-600 text-xs px-2 py-0.5 rounded-full font-medium">{{ tag }}</span>
+                    <span v-for="sup in splitTags(p.superiors)" class="bg-purple-50 text-purple-600 text-xs px-2 py-0.5 rounded-full font-medium" title="Superior"><i class="fa-solid fa-arrow-up mr-1 text-[10px]"></i>{{ sup }}</span>
+                    <span v-for="rep in splitTags(p.directReports)" class="bg-teal-50 text-teal-600 text-xs px-2 py-0.5 rounded-full font-medium" title="Direct Report"><i class="fa-solid fa-arrow-down mr-1 text-[10px]"></i>{{ rep }}</span>
+                  </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-gray-300"></i>
+              </div>
+              <div v-if="idx !== personas.length - 1" class="ios-sep"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: SIMULATE -->
+        <div v-if="currentTab === 'simulate'" class="h-full flex flex-col">
+          <!-- Step 1: Select Group -->
+          <div v-if="simStep === 1">
+            <p class="text-gray-600 mb-3 text-sm font-medium">Select team members to include in this simulation:</p>
+
+            <!-- Search + Filter Controls -->
+            <div class="mb-4 space-y-4">
+              <!-- iOS Search Bar + Cancel -->
+              <div class="ios-search-wrap">
+                <div class="ios-search">
+                  <i class="fa-solid fa-magnifying-glass icon"></i>
+                  <input
+                    ref="searchInput"
+                    v-model="searchTerm"
+                    @focus="searchFocused = true"
+                    @blur="onSearchBlur"
+                    placeholder="Search"
+                    inputmode="search"
+                    autocomplete="off"
+                    autocapitalize="none"
+                    spellcheck="false"
+                  >
+                  <button v-if="searchTerm" class="clear" @click="clearSearch" aria-label="Clear search">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                  </button>
+                </div>
+                <button v-if="searchFocused" class="ios-cancel-btn" @click="cancelSearch">Cancel</button>
+              </div>
+
+              <!-- Tag Filters -->
+              <div v-if="uniqueTags.length > 0">
+                <p class="text-xs text-gray-500 mb-2 font-medium">Quick filter by tag</p>
+                <div class="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+                  <span
+                    v-for="tag in uniqueTags"
+                    :key="tag"
+                    @click="toggleFilterTag(tag)"
+                    :class="selectedFilterTags.includes(tag) ? 'bg-blue-600 text-white' : 'bg-white border border-gray-200 text-gray-700'"
+                    class="flex-shrink-0 px-4 py-1 text-sm rounded-2xl whitespace-nowrap active:scale-95 transition-all cursor-pointer">
+                    {{ tag }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Filter Actions -->
+              <div class="flex gap-3 text-sm">
+                <button @click="clearFilters"
+                        class="flex-1 py-2 bg-gray-100 text-gray-600 rounded-2xl font-medium active:bg-gray-200 transition-colors">
+                  Clear Filters
+                </button>
+                <button @click="selectAllVisible"
+                        class="flex-1 py-2 bg-blue-100 text-blue-700 rounded-2xl font-medium active:bg-blue-200 transition-colors">
+                  Select All Visible
+                </button>
+              </div>
+
+              <!-- Results count -->
+              <p class="text-xs text-gray-500 text-center">
+                Showing {{ getFilteredPersonas().length }} of {{ personas.length }} people
+              </p>
+            </div>
+
+            <!-- BUTTON PLACED ABOVE THE LIST SO IT DOESN'T DISAPPEAR -->
+            <button @click="simStep = 2" :disabled="selectedPersonaIds.length === 0" class="w-full mb-4 bg-blue-600 text-white rounded-2xl py-3.5 font-semibold text-lg disabled:opacity-50 disabled:bg-gray-400 transition-colors shadow-sm active:bg-blue-700">
+              Continue ({{ selectedPersonaIds.length }} Selected)
+            </button>
+
+            <!-- iOS MULTISELECT LIST (no checkboxes) -->
+            <div class="ios-group mb-6">
+              <div v-for="(p, idx) in getFilteredPersonas()" :key="p.id">
+                <div
+                  @click="togglePersonaSelection(p.id)"
+                  :class="isPersonaSelected(p.id) ? 'ios-cell ios-selected' : 'ios-cell'"
+                  role="button"
+                  tabindex="0"
+                >
+                  <div class="min-w-0">
+                    <p class="font-semibold text-[17px] truncate">{{ p.name }}</p>
+                    <p class="text-[13px] ios-muted truncate">{{ p.title }} • {{ p.office }}</p>
+                    <div v-if="p.tags || p.superiors || p.directReports" class="flex gap-1 mt-2 flex-wrap">
+                      <span v-for="tag in splitTags(p.tags)" class="bg-blue-50 text-blue-600 text-xs px-2 py-0.5 rounded-full">{{ tag }}</span>
+                      <span v-for="sup in splitTags(p.superiors)" class="bg-purple-50 text-purple-600 text-xs px-2 py-0.5 rounded-full"><i class="fa-solid fa-arrow-up mr-1 text-[10px]"></i>{{ sup }}</span>
+                      <span v-for="rep in splitTags(p.directReports)" class="bg-teal-50 text-teal-600 text-xs px-2 py-0.5 rounded-full"><i class="fa-solid fa-arrow-down mr-1 text-[10px]"></i>{{ rep }}</span>
+                    </div>
+                  </div>
+
+                  <div class="ios-check">
+                    <i v-if="isPersonaSelected(p.id)" class="fa-solid fa-check"></i>
+                  </div>
+                </div>
+                <div v-if="idx !== getFilteredPersonas().length - 1" class="ios-sep"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: Input Scenario -->
+          <div v-if="simStep === 2" class="flex flex-col h-full">
+            <div class="flex items-center mb-4">
+              <button @click="simStep = 1" class="text-blue-500 mr-2"><i class="fa-solid fa-chevron-left"></i> Back</button>
+            </div>
+            <p class="text-gray-600 mb-2 font-medium">What scenario or question do you want to run against this group?</p>
+            <textarea v-model="currentScenario" rows="5" placeholder="e.g. How should we announce the new hybrid work policy?" class="w-full p-3 border border-gray-300 rounded-2xl mb-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none bg-white"></textarea>
+
+            <!-- More quick scenarios -->
+            <div class="flex flex-wrap gap-2 mb-4">
+              <span @click="currentScenario = 'How should we announce the new hybrid policy?'" class="bg-white border border-gray-200 text-xs px-3 py-1 rounded-full text-gray-600 active:bg-gray-100">Hybrid Policy</span>
+              <span @click="currentScenario = 'Best way to get buy-in for the reorg?'" class="bg-white border border-gray-200 text-xs px-3 py-1 rounded-full text-gray-600 active:bg-gray-100">Reorg Buy-in</span>
+              <span @click="currentScenario = 'How will this team react to a 10% budget cut?'" class="bg-white border border-gray-200 text-xs px-3 py-1 rounded-full text-gray-600 active:bg-gray-100">Budget Cut</span>
+              <span @click="currentScenario = 'Optimal messaging for the Q3 town hall?'" class="bg-white border border-gray-200 text-xs px-3 py-1 rounded-full text-gray-600 active:bg-gray-100">Q3 Town Hall</span>
+              <span @click="currentScenario = 'Best way to introduce AI tools to this group?'" class="bg-white border border-gray-200 text-xs px-3 py-1 rounded-full text-gray-600 active:bg-gray-100">Introduce AI Tools</span>
+              <span @click="currentScenario = 'How should we handle the upcoming merger announcement?'" class="bg-white border border-gray-200 text-xs px-3 py-1 rounded-full text-gray-600 active:bg-gray-100">Merger Announcement</span>
+              <span @click="currentScenario = 'Recommended communication plan for performance reviews?'" class="bg-white border border-gray-200 text-xs px-3 py-1 rounded-full text-gray-600 active:bg-gray-100">Performance Reviews</span>
+              <span @click="currentScenario = 'How to get buy-in for switching to a new project management tool?'" class="bg-white border border-gray-200 text-xs px-3 py-1 rounded-full text-gray-600 active:bg-gray-100">New PM Tool</span>
+            </div>
+
+            <button @click="runSimulation" :disabled="!currentScenario.trim() || isSimulating" class="mt-auto w-full bg-blue-600 text-white rounded-2xl py-3.5 font-semibold text-lg disabled:opacity-50 flex justify-center items-center">
+              <i v-if="isSimulating" class="fa-solid fa-spinner fa-spin mr-2"></i>
+              {{ isSimulating ? 'Simulating Team Reaction...' : 'Send to AI' }}
+            </button>
+          </div>
+
+          <!-- Step 3: Result -->
+          <div v-if="simStep === 3" class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+              <h3 class="font-bold text-lg text-blue-600"><i class="fa-solid fa-brain mr-1"></i> AI Strategy</h3>
+              <button @click="simStep = 1; currentScenario = '';" class="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full font-medium">New Run</button>
+            </div>
+            <div class="prose prose-sm text-gray-800" v-html="renderMarkdown(currentResponse)"></div>
+          </div>
+        </div>
+
+        <!-- TAB: HISTORY -->
+        <div v-if="currentTab === 'history'">
+          <div v-if="simulations.length === 0" class="text-center mt-20 text-gray-500">
+            <i class="fa-solid fa-clock-rotate-left text-5xl mb-4 text-gray-300"></i>
+            <p class="text-lg font-medium">No History</p>
+          </div>
+
+          <div class="space-y-4">
+            <div v-for="sim in simulations" :key="sim.id" class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100">
+              <p class="text-xs text-gray-400 mb-1">{{ new Date(sim.timestamp).toLocaleString() }} &bull; {{ sim.llm_model }}</p>
+              <p class="font-medium text-gray-900 mb-2 truncate">{{ sim.scenario }}</p>
+              <div class="prose prose-sm text-gray-700 bg-gray-50 p-3 rounded-2xl max-h-32 overflow-hidden relative">
+                <div v-html="renderMarkdown(sim.response)"></div>
+                <div class="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-gray-50 to-transparent"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: SETTINGS -->
+        <div v-if="currentTab === 'settings'" class="space-y-6">
+          <div class="ios-section-title">LLM Configuration</div>
+          <div class="ios-group">
+            <div class="ios-cell">
+              <div class="min-w-0">
+                <div class="text-[13px] ios-muted font-semibold mb-1">Provider Preset</div>
+                <select v-model="settings.provider" @change="applyPreset" class="w-full p-2 bg-transparent outline-none">
+                  <option value="OpenAI">OpenAI (Default)</option>
+                  <option value="Anthropic">Anthropic</option>
+                  <option value="Custom">Custom / Local</option>
+                </select>
+              </div>
+            </div>
+            <div class="ios-sep"></div>
+            <div class="ios-cell">
+              <div class="min-w-0 w-full">
+                <div class="text-[13px] ios-muted font-semibold mb-1">Base URL</div>
+                <input type="text" v-model="settings.baseUrl" class="w-full bg-transparent outline-none">
+              </div>
+            </div>
+            <div class="ios-sep"></div>
+            <div class="ios-cell">
+              <div class="min-w-0 w-full">
+                <div class="text-[13px] ios-muted font-semibold mb-1">API Key (Stored Locally)</div>
+                <input type="password" v-model="settings.apiKey" placeholder="sk-..." class="w-full bg-transparent outline-none">
+              </div>
+            </div>
+            <div class="ios-sep"></div>
+            <div class="ios-cell">
+              <div class="min-w-0 w-full">
+                <div class="text-[13px] ios-muted font-semibold mb-1">Model Name</div>
+                <input type="text" v-model="settings.model" placeholder="gpt-4o" class="w-full bg-transparent outline-none">
+              </div>
+            </div>
+          </div>
+
+          <div class="ios-section-title">Prompt Engineering</div>
+          <div class="ios-group">
+            <div class="ios-cell items-start">
+              <div class="min-w-0 w-full">
+                <div class="text-[13px] ios-muted font-semibold mb-1">System Prompt</div>
+                <textarea v-model="settings.systemPrompt" rows="4" :placeholder="defaultSystemPrompt" class="w-full bg-transparent outline-none resize-none text-[15px] text-gray-700"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="h-6 mt-2">
+            <p v-if="settingsSaved" class="text-green-600 text-sm text-center font-medium transition-opacity duration-300"><i class="fa-solid fa-check"></i> Changes saved</p>
+            <p v-else class="text-gray-400 text-xs text-center font-medium">Changes save automatically</p>
+          </div>
+        </div>
+
+        <!-- TAB: ACCOUNT -->
+        <div v-if="currentTab === 'account'" class="flex flex-col h-full space-y-6">
+          <!-- Profile Header -->
+          <div class="flex flex-col items-center bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+            <label class="relative cursor-pointer group">
+              <div class="w-28 h-28 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center border-4 border-white shadow-md">
+                <img v-if="userProfile.photo" :src="userProfile.photo" class="w-full h-full object-cover" />
+                <i v-else class="fa-solid fa-user text-5xl text-gray-300"></i>
+              </div>
+              <div class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <i class="fa-solid fa-camera text-white text-xl"></i>
+              </div>
+              <input type="file" accept="image/*" class="hidden" @change="onPhotoSelected">
+            </label>
+            <p class="text-[10px] text-gray-400 mt-2 uppercase tracking-wide font-semibold">Tap to upload photo</p>
+            <input type="text" v-model="userProfile.name" @input="saveProfile" placeholder="Enter your account name" class="mt-3 w-full text-center text-xl font-semibold text-gray-900 bg-transparent border-b border-transparent hover:border-gray-200 focus:border-blue-500 outline-none transition-colors pb-1 placeholder-gray-300">
+          </div>
+
+          <div class="ios-section-title">Account</div>
+
+          <!-- Menu Lines -->
+          <div class="ios-group">
+            <div class="ios-cell" @click="openHelpSheet">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                  <i class="fa-solid fa-circle-question text-lg"></i>
+                </div>
+                <div class="min-w-0">
+                  <span class="block font-semibold text-gray-800 text-[17px] truncate">Help / Guide</span>
+                  <span class="block text-[13px] ios-muted truncate">Learn how to use PersonaSim</span>
+                </div>
+              </div>
+              <i class="fa-solid fa-chevron-right text-gray-300 text-sm"></i>
+            </div>
+
+            <div v-if="devModeActive" class="ios-sep"></div>
+
+            <!-- Developer Tools Button (Visible only when devModeActive is true) -->
+            <div v-if="devModeActive" class="ios-cell" @click="openDevSheet">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center">
+                  <i class="fa-solid fa-code text-lg"></i>
+                </div>
+                <div class="min-w-0">
+                  <span class="block font-semibold text-gray-800 text-[17px] truncate">Developer Tools</span>
+                  <span class="block text-[13px] text-purple-500 truncate">Test Data & Diagnostics</span>
+                </div>
+              </div>
+              <i class="fa-solid fa-chevron-right text-gray-300 text-sm"></i>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="mt-auto text-center pt-8 text-gray-400 text-xs space-y-1 pb-4">
+            <p class="font-medium text-gray-500">PersonaSim AI</p>
+            <p @click="handleVersionTap" class="cursor-pointer active:scale-95 transition-transform inline-block px-4 py-1 select-none">Version {{ appVersion }}</p>
+            <p>Build {{ appBuild }}</p>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </main>
+
+  <!-- Bottom Navigation Bar (iOS Style) -->
+  <nav class="bg-white/90 backdrop-blur-lg border-t border-gray-200 pb-safe pt-2 px-6 flex justify-between items-center fixed bottom-0 w-full z-20">
+    <button @click="setTab('dashboard')" :class="currentTab === 'dashboard' ? 'text-blue-600' : 'text-gray-400'" class="flex flex-col items-center w-16">
+      <i class="fa-solid fa-house text-xl mb-1"></i>
+      <span class="text-[10px] font-medium">Home</span>
+    </button>
+    <button @click="setTab('personas')" :class="currentTab === 'personas' ? 'text-blue-600' : 'text-gray-400'" class="flex flex-col items-center w-16">
+      <i class="fa-solid fa-address-book text-xl mb-1"></i>
+      <span class="text-[10px] font-medium">Personas</span>
+    </button>
+    <button @click="setTab('simulate')" :class="currentTab === 'simulate' ? 'text-blue-600' : 'text-gray-400'" class="flex flex-col items-center w-16">
+      <i class="fa-solid fa-bolt text-xl mb-1"></i>
+      <span class="text-[10px] font-medium">Simulate</span>
+    </button>
+    <button @click="setTab('history')" :class="currentTab === 'history' ? 'text-blue-600' : 'text-gray-400'" class="flex flex-col items-center w-16">
+      <i class="fa-solid fa-clock-rotate-left text-xl mb-1"></i>
+      <span class="text-[10px] font-medium">History</span>
+    </button>
+    <button @click="setTab('settings')" :class="currentTab === 'settings' ? 'text-blue-600' : 'text-gray-400'" class="flex flex-col items-center w-16">
+      <i class="fa-solid fa-gear text-xl mb-1"></i>
+      <span class="text-[10px] font-medium">Settings</span>
+    </button>
+  </nav>
+
+  <!-- ===================== iOS BOTTOM SHEET: Persona Add/Edit Form ===================== -->
+  <Transition name="fade">
+    <div v-if="showForm" class="ios-backdrop z-50" @click="closeForm"></div>
+  </Transition>
+
+  <Transition name="sheet">
+    <div v-if="showForm" class="ios-sheet z-50" @click.stop
+         :class="{ 'is-dragging': sheetDrag.active && sheetDrag.target === 'form' }"
+         @touchstart="onSheetTouchStart($event, 'form')"
+         @touchmove="onSheetTouchMove($event, 'form')"
+         @touchend="onSheetTouchEnd('form')"
+         :style="formSheetStyle">
+      <div class="ios-sheet-inner">
+        <div class="ios-grabber"></div>
+        <div class="ios-sheet-header">
+          <button class="ios-nav-btn" @click="closeForm">Cancel</button>
+          <div class="ios-sheet-title">{{ editId ? 'Edit Persona' : 'New Persona' }}</div>
+          <button class="ios-nav-btn right" @click="savePersona">Save</button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 space-y-4 pb-12">
+          <div class="ios-section-title">Basics</div>
+          <div class="ios-group">
+            <div class="ios-cell">
+              <div class="min-w-0 w-full">
+                <div class="text-[13px] ios-muted font-semibold mb-1">Full Name</div>
+                <input type="text" v-model="form.name" class="w-full bg-transparent outline-none" placeholder="e.g. Jordan Smith">
+              </div>
+            </div>
+            <div class="ios-sep"></div>
+            <div class="ios-cell">
+              <div class="min-w-0 w-full">
+                <div class="text-[13px] ios-muted font-semibold mb-1">Title / Role</div>
+                <input type="text" v-model="form.title" class="w-full bg-transparent outline-none" placeholder="e.g. Engineering Manager">
+              </div>
+            </div>
+            <div class="ios-sep"></div>
+            <div class="ios-cell">
+              <div class="min-w-0 w-full">
+                <div class="text-[13px] ios-muted font-semibold mb-1">Office / Location</div>
+                <input type="text" v-model="form.office" class="w-full bg-transparent outline-none" placeholder="e.g. Bothell HQ - 3rd Floor">
+              </div>
+            </div>
+          </div>
+
+          <div class="ios-section-title">Org Context</div>
+          <div class="ios-group">
+            <div class="ios-cell">
+              <div class="min-w-0 w-full">
+                <div class="text-[13px] ios-muted font-semibold mb-1">Superiors (comma separated)</div>
+                <input type="text" v-model="form.superiors" class="w-full bg-transparent outline-none" placeholder="e.g. Jane Director">
+              </div>
+            </div>
+            <div class="ios-sep"></div>
+            <div class="ios-cell">
+              <div class="min-w-0 w-full">
+                <div class="text-[13px] ios-muted font-semibold mb-1">Direct Reports (comma separated)</div>
+                <input type="text" v-model="form.directReports" class="w-full bg-transparent outline-none" placeholder="e.g. John Doe, Sarah Smith">
+              </div>
+            </div>
+          </div>
+
+          <div class="ios-section-title">Traits</div>
+          <div class="ios-group">
+            <div class="ios-cell items-start">
+              <div class="min-w-0 w-full">
+                <div class="text-[13px] ios-muted font-semibold mb-1">Likes</div>
+                <textarea v-model="form.likes" rows="2" placeholder="Coffee, clear specs, hiking" class="w-full bg-transparent outline-none resize-none"></textarea>
+              </div>
+            </div>
+            <div class="ios-sep"></div>
+            <div class="ios-cell items-start">
+              <div class="min-w-0 w-full">
+                <div class="text-[13px] ios-muted font-semibold mb-1">Dislikes</div>
+                <textarea v-model="form.dislikes" rows="2" placeholder="Micromanagement, surprises" class="w-full bg-transparent outline-none resize-none"></textarea>
+              </div>
+            </div>
+            <div class="ios-sep"></div>
+            <div class="ios-cell items-start">
+              <div class="min-w-0 w-full">
+                <div class="text-[13px] ios-muted font-semibold mb-1">Background / Bio</div>
+                <textarea v-model="form.background" rows="3" class="w-full bg-transparent outline-none resize-none" placeholder="Short bio..."></textarea>
+              </div>
+            </div>
+            <div class="ios-sep"></div>
+            <div class="ios-cell">
+              <div class="min-w-0 w-full">
+                <div class="text-[13px] ios-muted font-semibold mb-1">Tags (comma separated)</div>
+                <input type="text" v-model="form.tags" class="w-full bg-transparent outline-none" placeholder="introvert, remote, senior">
+              </div>
+            </div>
+          </div>
+
+          <button v-if="editId" @click="deletePersona(editId)" class="w-full bg-red-50 text-red-600 rounded-2xl py-3.5 font-semibold mt-2 active:bg-red-100">
+            Delete Persona
+          </button>
+        </div>
+      </div>
+    </div>
+  </Transition>
+
+  <!-- ===================== iOS BOTTOM SHEET: Help / Guide ===================== -->
+  <Transition name="fade">
+    <div v-if="showHelpModal" class="ios-backdrop z-50" @click="closeHelpSheet"></div>
+  </Transition>
+
+  <Transition name="sheet">
+    <div v-if="showHelpModal" class="ios-sheet z-50" @click.stop
+         :class="{ 'is-dragging': sheetDrag.active && sheetDrag.target === 'help' }"
+         @touchstart="onSheetTouchStart($event, 'help')"
+         @touchmove="onSheetTouchMove($event, 'help')"
+         @touchend="onSheetTouchEnd('help')"
+         :style="helpSheetStyle">
+      <div class="ios-sheet-inner">
+        <div class="ios-grabber"></div>
+        <div class="ios-sheet-header">
+          <button class="ios-nav-btn" @click="closeHelpSheet"><i class="fa-solid fa-chevron-left mr-1"></i> Back</button>
+          <div class="ios-sheet-title">Help / Guide</div>
+          <div style="min-width:70px;"></div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 pb-12 space-y-4">
+          <div class="ios-group">
+            <div class="ios-cell">
+              <div class="min-w-0 w-full">
+                <h3 class="text-[20px] font-bold text-blue-600 mb-2">What is PersonaSim AI?</h3>
+                <p class="text-gray-600 text-sm leading-relaxed mb-4">
+                  PersonaSim AI is a powerful simulation tool designed to help you anticipate how real people or teams will react to ideas, changes, or scenarios.
+                </p>
+
+                <h3 class="text-[17px] font-bold text-gray-800 mb-2 mt-3">How is it used?</h3>
+                <ul class="text-gray-600 text-sm leading-relaxed space-y-2 list-disc pl-4 mb-4">
+                  <li><strong>Create Personas:</strong> Add team members, capturing their traits, likes, dislikes, and roles.</li>
+                  <li><strong>Select a Group:</strong> Choose specific individuals to participate in a simulation.</li>
+                  <li><strong>Run Scenarios:</strong> Pitch an idea, announcement, or question.</li>
+                  <li><strong>Get Insights:</strong> The AI analyzes the collective traits and predicts emotional reactions, risks, and optimal messaging strategies.</li>
+                </ul>
+
+                <h3 class="text-[17px] font-bold text-gray-800 mb-2 mt-3">Why is it useful?</h3>
+                <p class="text-gray-600 text-sm leading-relaxed">
+                  Instead of guessing how a controversial policy or new project will land, you can test it safely. It reduces blind spots, improves communication, and builds stronger alignment before you actually hit "send" in the real world.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="text-center text-xs text-gray-400 px-2">
+            Tip: Add this app to your Home Screen for the best iOS-like experience.
+          </div>
+        </div>
+      </div>
+    </div>
+  </Transition>
+
+  <!-- ===================== iOS BOTTOM SHEET: Developer Tools ===================== -->
+  <Transition name="fade">
+    <div v-if="showDevModal" class="ios-backdrop z-50" @click="closeDevSheet"></div>
+  </Transition>
+
+  <Transition name="sheet">
+    <div v-if="showDevModal" class="ios-sheet z-50" @click.stop
+         :class="{ 'is-dragging': sheetDrag.active && sheetDrag.target === 'dev' }"
+         @touchstart="onSheetTouchStart($event, 'dev')"
+         @touchmove="onSheetTouchMove($event, 'dev')"
+         @touchend="onSheetTouchEnd('dev')"
+         :style="devSheetStyle">
+      <div class="ios-sheet-inner">
+        <div class="ios-grabber"></div>
+        <div class="ios-sheet-header">
+          <button class="ios-nav-btn" @click="closeDevSheet"><i class="fa-solid fa-chevron-left mr-1"></i> Back</button>
+          <div class="ios-sheet-title"><span class="text-purple-700">Developer Tools</span></div>
+          <div style="min-width:70px;"></div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 pb-12 space-y-4">
+          <div class="ios-group">
+            <div class="ios-cell">
+              <div class="min-w-0 w-full">
+                <h3 class="text-[17px] font-bold text-purple-600 mb-2"><i class="fa-solid fa-flask mr-1"></i> Test Database Mode</h3>
+                <p class="text-gray-600 text-sm leading-relaxed">
+                  Use this area to quickly populate your database with dummy personas. This allows you to test simulation queries, verify UI scaling for large teams, and test tagging filters without needing to manually input fake data.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <button @click="generateRandomPersonas" class="w-full bg-purple-600 text-white rounded-2xl py-4 font-semibold shadow-sm active:bg-purple-700 transition-colors flex justify-center items-center gap-2">
+              <i class="fa-solid fa-users-rays"></i> Generate Random Hierarchical Team
+            </button>
+            <button @click="devClearDatabase" class="w-full bg-red-50 text-red-600 rounded-2xl py-4 font-semibold shadow-sm active:bg-red-100 transition-colors flex justify-center items-center gap-2">
+              <i class="fa-solid fa-trash-can"></i> Clear All Database Data
+            </button>
+          </div>
+
+          <div v-if="devModeSummary" class="ios-group">
+            <div class="ios-cell">
+              <div class="min-w-0 w-full">
+                <p class="text-xs text-blue-500 font-bold uppercase tracking-wide mb-1">Action Log</p>
+                <p class="text-sm text-blue-800 font-medium">{{ devModeSummary }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-2">
+            <button @click="exitDevMode" class="w-full bg-gray-200 text-gray-700 rounded-2xl py-4 font-semibold shadow-sm active:bg-gray-300 transition-colors flex justify-center items-center gap-2">
+              <i class="fa-solid fa-door-open"></i> Exit Developer Mode
+            </button>
+            <p class="text-center text-xs text-gray-400 mt-3">This will hide this menu and return the app to normal operation.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Transition>
+
+  <!-- ===================== iOS ALERT (CENTER) ===================== -->
+  <Transition name="fade">
+    <div v-if="dialog.visible && dialog.type === 'alert'" class="ios-backdrop z-[60]" @click="dismissDialog(false)"></div>
+  </Transition>
+
+  <Transition name="pop">
+    <div v-if="dialog.visible && dialog.type === 'alert'" class="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none">
+      <div class="ios-alert pointer-events-auto" @click.stop>
+        <div class="ios-alert-body">
+          <div class="ios-alert-title">{{ dialog.title }}</div>
+          <div class="ios-alert-message">{{ dialog.message }}</div>
+        </div>
+        <div class="ios-alert-actions">
+          <button
+            v-for="(a, idx) in dialog.actions"
+            :key="idx"
+            class="ios-alert-btn"
+            :class="a.destructive ? 'destructive' : ''"
+            @click="dismissDialog(a.value)"
+          >
+            {{ a.text }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </Transition>
+
+  <!-- ===================== iOS ACTION SHEET (BOTTOM) ===================== -->
+  <Transition name="fade">
+    <div v-if="dialog.visible && dialog.type === 'sheet'" class="ios-backdrop z-[60]" @click="dismissDialog(false)"></div>
+  </Transition>
+
+  <Transition name="sheet">
+    <div v-if="dialog.visible && dialog.type === 'sheet'" class="fixed inset-x-0 bottom-0 z-[60] ios-action-sheet" @click.stop>
+      <div class="ios-action-card">
+        <div class="ios-action-title">
+          <div class="t">{{ dialog.title }}</div>
+          <div class="m">{{ dialog.message }}</div>
+        </div>
+        <div class="ios-action-sep"></div>
+        <button
+          v-for="(a, idx) in dialog.actions"
+          :key="'a'+idx"
+          class="ios-action-btn"
+          :class="a.destructive ? 'destructive' : ''"
+          @click="dismissDialog(a.value)"
+        >
+          {{ a.text }}
+        </button>
+      </div>
+
+      <div class="ios-action-cancel">
+        <button class="ios-action-btn" @click="dismissDialog(false)">Cancel</button>
+      </div>
+    </div>
+  </Transition>
+
+</div>
+
+<script>
+  // Initialize Dexie (IndexedDB)
+  const db = new Dexie('PersonaSimDB');
+  db.version(1).stores({
+    personas: '++id, name, title',
+    simulations: '++id, timestamp',
+    settings: 'id'
+  });
+
+  const { createApp } = Vue;
+
+  createApp({
+    data() {
+      return {
+        // Nav State
+        currentTab: 'personas',
+        tabTitles: {
+          'dashboard': 'Home',
+          'personas': 'Team Personas',
+          'simulate': 'New Simulation',
+          'history': 'Past Simulations',
+          'settings': 'Settings',
+          'account': 'Account'
+        },
+
+        // Data
+        personas: [],
+        simulations:[],
+        settings: { id: 1, provider: 'OpenAI', baseUrl: 'https://api.openai.com/v1/chat/completions', apiKey: '', model: 'gpt-4o', systemPrompt: '' },
+
+        // Greeting
+        greeting: "Hello! 👋",
+
+        // Default System Prompt
+        defaultSystemPrompt: "You are an expert organizational psychologist and strategist.\nI have assembled the following real team members. Simulate how this exact group would think, feel, and react.",
+
+        // Form State
+        showForm: false,
+        editId: null,
+        form: { name: '', title: '', office: '', likes: '', dislikes: '', background: '', tags: '', superiors: '', directReports: '' },
+
+        // Simulation State
+        simStep: 1, // 1: Select, 2: Input, 3: Result
+        selectedPersonaIds:[],
+        currentScenario: '',
+        currentResponse: '',
+        isSimulating: false,
+
+        // UI Helpers
+        settingsSaved: false,
+        settingsSaveDebounce: null,
+
+        // Installation hint
+        showInstallHint: false,
+
+        // Filtering for simulation selection
+        searchTerm: '',
+        searchFocused: false,
+        selectedFilterTags: [],
+        uniqueTags:[],
+
+        // Account Info & Help Sheet
+        userProfile: { name: '', photo: null },
+        showHelpModal: false,
+        appVersion: '1.1.0',
+        appBuild: '2026.02.23',
+
+        // Developer Mode State
+        versionTapCount: 0,
+        versionTapTimer: null,
+        devModeActive: false,
+        showDevModal: false,
+        devModeSummary: null,
+
+        // iOS-style dialog system (replaces alert/confirm)
+        dialog: {
+          visible: false,
+          type: 'alert', // 'alert' | 'sheet'
+          title: '',
+          message: '',
+          actions:[]
+        },
+        dialogResolver: null,
+
+        // Bottom-sheet drag state (simple iOS-like pull-to-dismiss)
+        sheetDrag: {
+          active: false,
+          startY: 0,
+          currentY: 0,
+          translateY: 0,
+          target: null
+        }
+      };
+    },
+
+    computed: {
+      formSheetStyle() {
+        if (this.sheetDrag.active && this.sheetDrag.target === 'form') {
+          return { transform: `translateY(${this.sheetDrag.translateY}px)` };
+        }
+        return {};
+      },
+      helpSheetStyle() {
+        if (this.sheetDrag.active && this.sheetDrag.target === 'help') {
+          return { transform: `translateY(${this.sheetDrag.translateY}px)` };
+        }
+        return {};
+      },
+      devSheetStyle() {
+        if (this.sheetDrag.active && this.sheetDrag.target === 'dev') {
+          return { transform: `translateY(${this.sheetDrag.translateY}px)` };
+        }
+        return {};
+      }
+    },
+
+    watch: {
+      settings: {
+        handler() {
+          this.saveSettings();
+        },
+        deep: true
+      }
+    },
+
+    async mounted() {
+      await this.loadData();
+
+      // Show install hint on first visit
+      if (!localStorage.getItem('installHintDismissed')) {
+        this.showInstallHint = true;
+      }
+
+      // Load User Profile from localStorage
+      const savedProfile = localStorage.getItem('personaSimUserProfile');
+      if (savedProfile) {
+        try {
+          this.userProfile = JSON.parse(savedProfile);
+        } catch(e) { console.error("Could not load user profile", e); }
+      }
+
+      // Check for persisted Dev Mode
+      if (localStorage.getItem('personaSimDevMode') === 'true') {
+        this.devModeActive = true;
+      }
+
+      // Populate unique tags after loading personas
+      this.uniqueTags = this.getUniqueTags();
+
+      // Set default to dashboard
+      this.currentTab = 'dashboard';
+
+      // Set greeting
+      this.greeting = this.getGreeting();
+    },
+
+    methods: {
+      /* ===================== DATA LOAD ===================== */
+      async loadData() {
+        this.personas = await db.personas.toArray();
+        this.simulations = await db.simulations.orderBy('timestamp').reverse().toArray();
+        const storedSettings = await db.settings.get(1);
+        if (storedSettings) {
+          // Merge to ensure new properties like systemPrompt don't break old saves
+          this.settings = { ...this.settings, ...storedSettings };
+        }
+      },
+
+      /* ===================== NAV ===================== */
+      setTab(tab) {
+        if (this.currentTab === tab) return;
+        this.currentTab = tab;
+        if (tab === 'simulate') {
+          this.simStep = 1;
+          this.selectedPersonaIds =[];
+        }
+      },
+
+      /* ===================== SEARCH (iOS cancel) ===================== */
+      onSearchBlur() {
+        // Delay so tapping Cancel works reliably
+        setTimeout(() => {
+          if (!this.searchTerm) this.searchFocused = false;
+        }, 120);
+      },
+      clearSearch() {
+        this.searchTerm = '';
+        this.$refs.searchInput && this.$refs.searchInput.focus();
+      },
+      cancelSearch() {
+        this.searchTerm = '';
+        this.searchFocused = false;
+        if (this.$refs.searchInput) this.$refs.searchInput.blur();
+      },
+
+      /* ===================== iOS DIALOGS (replace alert/confirm) ===================== */
+      blurActiveElement() {
+        const el = document.activeElement;
+        if (el && typeof el.blur === 'function') el.blur();
+      },
+      presentAlert(title, message, buttonText = "OK") {
+        this.blurActiveElement();
+        this.dialog.visible = true;
+        this.dialog.type = 'alert';
+        this.dialog.title = title || "Notice";
+        this.dialog.message = message || "";
+        this.dialog.actions =[{ text: buttonText, value: true, destructive: false }];
+        return new Promise((resolve) => {
+          this.dialogResolver = resolve;
+        });
+      },
+      presentConfirmSheet(title, message, okText = "OK", destructive = false) {
+        this.blurActiveElement();
+        this.dialog.visible = true;
+        this.dialog.type = 'sheet';
+        this.dialog.title = title || "Are you sure?";
+        this.dialog.message = message || "";
+        this.dialog.actions =[{ text: okText, value: true, destructive: !!destructive }];
+        return new Promise((resolve) => {
+          this.dialogResolver = resolve;
+        });
+      },
+      dismissDialog(value) {
+        const resolver = this.dialogResolver;
+        this.dialogResolver = null;
+        this.dialog.visible = false;
+        this.dialog.title = '';
+        this.dialog.message = '';
+        this.dialog.actions =[];
+        if (resolver) resolver(value);
+      },
+
+      /* ===================== ACCOUNT / PROFILE ===================== */
+      onPhotoSelected(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          this.userProfile.photo = event.target.result;
+          this.saveProfile();
+        };
+        reader.readAsDataURL(file);
+      },
+      saveProfile() {
+        localStorage.setItem('personaSimUserProfile', JSON.stringify(this.userProfile));
+      },
+
+      openHelpSheet() {
+        this.showHelpModal = true;
+      },
+      closeHelpSheet() {
+        this.showHelpModal = false;
+      },
+
+      openDevSheet() {
+        this.showDevModal = true;
+      },
+      closeDevSheet() {
+        this.showDevModal = false;
+      },
+
+      /* ===================== DEVELOPER MODE ===================== */
+      handleVersionTap() {
+        this.versionTapCount++;
+        if (this.versionTapCount >= 7) {
+          this.devModeActive = true;
+          this.showDevModal = true;
+          this.versionTapCount = 0;
+          localStorage.setItem('personaSimDevMode', 'true');
+        }
+
+        clearTimeout(this.versionTapTimer);
+        this.versionTapTimer = setTimeout(() => {
+          this.versionTapCount = 0;
+        }, 1000); // Taps must happen within 1 second of each other
+      },
+      exitDevMode() {
+        this.devModeActive = false;
+        this.showDevModal = false;
+        this.devModeSummary = null;
+        localStorage.removeItem('personaSimDevMode');
+      },
+
+      async generateRandomPersonas() {
+        const firstNames =["Alex", "Jordan", "Taylor", "Casey", "Morgan", "Riley", "Sam", "Jamie", "Quinn", "Avery", "Drew", "Sydney", "Cameron", "Blake", "Reese", "Harper", "Rowan", "Ellis", "Skyler", "Finley"];
+        const lastNames =["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Chen", "Kim", "Patel", "Nguyen", "Lee", "Singh", "Wong", "Gomez", "Lopez", "Clark"];
+
+        const hierarchicalTitles =[
+          { level: 0, titles:["Chief Executive Officer (CEO)", "Chief Operating Officer (COO)"] },
+          { level: 1, titles:["VP of Engineering", "VP of Product", "VP of Marketing", "VP of Sales", "VP of HR"] },
+          { level: 2, titles:["Sr. Director of Operations", "Director of Engineering", "Director of Product", "Director of Marketing", "Director of Sales"] },
+          { level: 3, titles:["Engineering Manager", "Product Manager", "Marketing Lead", "Sales Manager", "HR Business Partner"] },
+          { level: 4, titles:["Software Engineer", "UX Designer", "Data Scientist", "Sales Associate", "Operations Specialist", "Financial Analyst", "Customer Support Lead"] }
+        ];
+
+        const offices =["Seattle HQ", "New York Branch", "Remote", "London Office", "Austin Hub", "San Francisco HQ"];
+        const tagsList =["introvert", "extrovert", "detail-oriented", "big-picture", "remote", "in-office", "veteran", "new-hire", "leadership", "individual-contributor", "data-driven", "creative", "strategic"];
+        const likesList =["Coffee", "Clear specs", "Hiking", "Brainstorming", "Asynchronous comms", "Data-driven decisions", "Team lunches", "Deep work blocks", "Mentoring", "Agile methodologies", "Whiteboarding", "Transparency"];
+        const dislikesList =["Micromanagement", "Surprises", "Meetings that could be emails", "Vague feedback", "Last-minute deadlines", "Silos", "Office politics", "Lack of documentation", "Context switching", "Ambiguity"];
+
+        const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+        const randomItems = (arr, count) => {
+          const shuffled = [...arr].sort(() => 0.5 - Math.random());
+          return shuffled.slice(0, count);
+        };
+
+        const numToGenerate = randomInt(15, 30);
+        const generatedPeople =[];
+
+        // Generate base personas with levels
+        for (let i = 0; i < numToGenerate; i++) {
+          // Skew generation towards lower levels (more ICs than CEOs)
+          let levelPick = randomInt(1, 100);
+          let level = 4; // default IC
+          if (levelPick <= 5) level = 0; // 5% chance C-suite
+          else if (levelPick <= 15) level = 1; // 10% chance VP
+          else if (levelPick <= 35) level = 2; // 20% chance Director
+          else if (levelPick <= 60) level = 3; // 25% chance Manager
+          // else 40% chance IC
+
+          const levelTitles = hierarchicalTitles.find(t => t.level === level).titles;
+
+          generatedPeople.push({
+            name: `${firstNames[randomInt(0, firstNames.length - 1)]} ${lastNames[randomInt(0, lastNames.length - 1)]}`,
+            title: levelTitles[randomInt(0, levelTitles.length - 1)],
+            office: offices[randomInt(0, offices.length - 1)],
+            likes: randomItems(likesList, randomInt(1, 3)).join(', '),
+            dislikes: randomItems(dislikesList, randomInt(1, 3)).join(', '),
+            background: "Automatically generated test persona for simulation database.",
+            tags: randomItems(tagsList, randomInt(2, 4)).join(', '),
+            level: level,
+            superiorsArr:[],
+            directReportsArr:[],
+            createdAt: Date.now()
+          });
+        }
+
+        // Establish Hierarchy
+        const byLevel = {0:[], 1:[], 2:[], 3:[], 4:[]};
+        generatedPeople.forEach(p => byLevel[p.level].push(p));
+
+        const getAllHigher = (lvl) => {
+          let higher =[];
+          for (let i = 0; i < lvl; i++) {
+            higher = higher.concat(byLevel[i]);
+          }
+          return higher;
+        };
+
+        generatedPeople.forEach(p => {
+          if (p.level > 0) {
+            const possibleBosses = getAllHigher(p.level);
+            if (possibleBosses.length > 0) {
+              const boss = possibleBosses[randomInt(0, possibleBosses.length - 1)];
+              p.superiorsArr.push(boss.name);
+              boss.directReportsArr.push(p.name);
+            }
+          }
+        });
+
+        const finalPersonas = generatedPeople.map(p => {
+          return {
+            name: p.name,
+            title: p.title,
+            office: p.office,
+            likes: p.likes,
+            dislikes: p.dislikes,
+            background: p.background,
+            tags: p.tags,
+            superiors: p.superiorsArr.join(', '),
+            directReports: p.directReportsArr.join(', '),
+            createdAt: p.createdAt
+          };
+        });
+
+        await db.personas.bulkAdd(finalPersonas);
+        await this.loadData();
+        this.uniqueTags = this.getUniqueTags();
+        this.devModeSummary = `Success: Generated ${numToGenerate} structured hierarchical personas. Your team database now has ${this.personas.length} members.`;
+      },
+
+      async devClearDatabase() {
+        const ok = await this.presentConfirmSheet(
+          "Clear All Data",
+          "This will delete ALL personas from your local database. This cannot be undone.",
+          "Delete All",
+          true
+        );
+        if (!ok) return;
+
+        await db.personas.clear();
+        await this.loadData();
+        this.uniqueTags =[];
+        this.devModeSummary = `Database wiped successfully. 0 personas remain.`;
+      },
+
+      /* ===================== CRUD PERSONAS ===================== */
+      openForm(persona = null) {
+        if (persona) {
+          this.editId = persona.id;
+          this.form = { ...persona };
+        } else {
+          this.editId = null;
+          this.form = { name: '', title: '', office: '', likes: '', dislikes: '', background: '', tags: '', superiors: '', directReports: '' };
+        }
+        this.showForm = true;
+      },
+
+      closeForm() {
+        this.showForm = false;
+        setTimeout(() => {
+          this.editId = null;
+        }, 350);
+      },
+
+      async savePersona() {
+        if (!this.form.name) {
+          await this.presentAlert("Name Required", "Please enter a full name before saving.", "OK");
+          return;
+        }
+        const payload = { ...this.form, createdAt: Date.now() };
+        if (this.editId) {
+          await db.personas.update(this.editId, payload);
+        } else {
+          await db.personas.add(payload);
+        }
+        this.closeForm();
+        await this.loadData();
+        this.uniqueTags = this.getUniqueTags();
+      },
+
+      async deletePersona(id) {
+        const ok = await this.presentConfirmSheet(
+          "Delete Persona",
+          "This will permanently delete this persona from your device.",
+          "Delete",
+          true
+        );
+        if (!ok) return;
+
+        await db.personas.delete(id);
+        this.closeForm();
+        await this.loadData();
+        this.uniqueTags = this.getUniqueTags();
+      },
+
+      async deleteAllPersonas() {
+        const ok = await this.presentConfirmSheet(
+          "Delete All Personas",
+          "This will permanently delete ALL personas. This cannot be undone.",
+          "Delete All",
+          true
+        );
+        if (!ok) return;
+
+        await db.personas.clear();
+        await this.loadData();
+        this.uniqueTags =[];
+      },
+
+      splitTags(tagsStr) {
+        if (!tagsStr) return[];
+        return tagsStr.split(',').map(t => t.trim()).filter(t => t);
+      },
+
+      /* ===================== SETTINGS ===================== */
+      applyPreset() {
+        if (this.settings.provider === 'OpenAI') {
+          this.settings.baseUrl = 'https://api.openai.com/v1/chat/completions';
+          this.settings.model = 'gpt-4o';
+        } else if (this.settings.provider === 'Anthropic') {
+          this.settings.baseUrl = 'https://api.anthropic.com/v1/messages';
+          this.settings.model = 'claude-3-5-sonnet-20240620';
+        } else {
+          this.settings.baseUrl = 'http://localhost:11434/v1/chat/completions';
+          this.settings.model = 'llama3';
+        }
+      },
+
+      saveSettings() {
+        clearTimeout(this.settingsSaveDebounce);
+        this.settingsSaveDebounce = setTimeout(async () => {
+          try {
+            const rawSettings = JSON.parse(JSON.stringify(this.settings));
+            await db.settings.put(rawSettings);
+            this.settingsSaved = true;
+            setTimeout(() => this.settingsSaved = false, 2000);
+          } catch (error) {
+            console.error("Error saving settings:", error);
+          }
+        }, 500);
+      },
+
+      /* ===================== SIMULATION WORKFLOW ===================== */
+      buildPrompt(selectedPersonas, scenario, customSystem) {
+        const sysPrompt = customSystem && customSystem.trim() !== '' ? customSystem : this.defaultSystemPrompt;
+        let prompt = `${sysPrompt}\n\nPERSONAS:\n`;
+        selectedPersonas.forEach((p, index) => {
+          prompt += `${index + 1}. Name: ${p.name}, Title: ${p.title}, Office: ${p.office}\n Superiors: ${p.superiors || 'None'}\n Direct Reports: ${p.directReports || 'None'}\n Likes: ${p.likes}\n Dislikes: ${p.dislikes}\n Background: ${p.background}\n Tags: ${p.tags}\n\n`;
+        });
+        prompt += `SCENARIO / QUESTION:\n${scenario}\n\nProvide:\n• Expected emotional reaction of the group\n• Optimal messaging and communication plan\n• Recommended organizational strategy or heuristics\n• 3 concrete action options ranked by likely success with this group\n• Any risks or blind spots\n\nAnswer in clear, professional bullet points. Be direct and practical.`;
+        return prompt;
+      },
+
+      async runSimulation() {
+        if (!this.settings.apiKey && this.settings.provider !== 'Custom') {
+          await this.presentAlert("API Key Needed", "Please configure your API Key in Settings first.", "OK");
+          this.setTab('settings');
+          return;
+        }
+        this.isSimulating = true;
+
+        try {
+          const selectedGrp = this.personas.filter(p => this.selectedPersonaIds.includes(p.id));
+          const promptContent = this.buildPrompt(selectedGrp, this.currentScenario, this.settings.systemPrompt);
+
+          // OpenAI Compatible Fetch
+          const response = await fetch(this.settings.baseUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${this.settings.apiKey}`
+            },
+            body: JSON.stringify({
+              model: this.settings.model,
+              messages: [{ role: "user", content: promptContent }],
+              temperature: 0.7,
+              max_tokens: 2000
+            })
+          });
+
+          if (!response.ok) {
+            const errBody = await response.text();
+            throw new Error(`API Error ${response.status}: ${errBody}`);
+          }
+
+          const data = await response.json();
+          const aiText = data.choices ? data.choices[0].message.content : (data.message ? data.message.content : "No response format recognized.");
+
+          this.currentResponse = aiText;
+
+          // Save History
+          await db.simulations.add({
+            timestamp: Date.now(),
+            group_persona_ids: [...this.selectedPersonaIds],
+            scenario: this.currentScenario,
+            llm_provider: this.settings.provider,
+            llm_model: this.settings.model,
+            response: aiText
+          });
+
+          await this.loadData();
+          this.simStep = 3;
+        } catch (error) {
+          await this.presentAlert("Simulation Failed", String(error.message || error), "OK");
+        } finally {
+          this.isSimulating = false;
+        }
+      },
+
+      /* ===================== UTIL ===================== */
+      renderMarkdown(text) {
+        const raw = marked.parse(text || "");
+        // sanitize to avoid HTML injection
+        return DOMPurify.sanitize(raw);
+      },
+
+      dismissInstallHint() {
+        this.showInstallHint = false;
+        localStorage.setItem('installHintDismissed', 'true');
+      },
+
+      /* ===================== FILTERING ===================== */
+      getUniqueTags() {
+        const tagSet = new Set();
+        this.personas.forEach(p => {
+          if (p.tags) {
+            this.splitTags(p.tags).forEach(tag => tagSet.add(tag));
+          }
+        });
+        return Array.from(tagSet).sort();
+      },
+
+      toggleFilterTag(tag) {
+        const index = this.selectedFilterTags.indexOf(tag);
+        if (index === -1) {
+          this.selectedFilterTags.push(tag);
+        } else {
+          this.selectedFilterTags.splice(index, 1);
+        }
+      },
+
+      clearFilters() {
+        this.searchTerm = '';
+        this.selectedFilterTags =[];
+        this.searchFocused = false;
+        if (this.$refs.searchInput) this.$refs.searchInput.blur();
+      },
+
+      selectAllVisible() {
+        const visibleIds = this.getFilteredPersonas().map(p => p.id);
+        this.selectedPersonaIds = [...new Set([...this.selectedPersonaIds, ...visibleIds])];
+      },
+
+      getFilteredPersonas() {
+        let filtered = this.personas;
+
+        if (this.searchTerm && this.searchTerm.trim()) {
+          const term = this.searchTerm.toLowerCase().trim();
+          filtered = filtered.filter(p =>
+            (p.name && p.name.toLowerCase().includes(term)) ||
+            (p.title && p.title.toLowerCase().includes(term)) ||
+            (p.office && p.office.toLowerCase().includes(term)) ||
+            (p.likes && p.likes.toLowerCase().includes(term)) ||
+            (p.dislikes && p.dislikes.toLowerCase().includes(term)) ||
+            (p.background && p.background.toLowerCase().includes(term)) ||
+            (p.tags && p.tags.toLowerCase().includes(term)) ||
+            (p.superiors && p.superiors.toLowerCase().includes(term)) ||
+            (p.directReports && p.directReports.toLowerCase().includes(term))
+          );
+        }
+
+        if (this.selectedFilterTags.length > 0) {
+          filtered = filtered.filter(p => {
+            if (!p.tags) return false;
+            const personTags = this.splitTags(p.tags);
+            return this.selectedFilterTags.every(tag => personTags.includes(tag));
+          });
+        }
+        return filtered;
+      },
+
+      /* ===================== iOS MULTISELECT HELPERS ===================== */
+      isPersonaSelected(id) {
+        return this.selectedPersonaIds.includes(id);
+      },
+
+      togglePersonaSelection(id) {
+        const idx = this.selectedPersonaIds.indexOf(id);
+        if (idx === -1) {
+          this.selectedPersonaIds.push(id);
+        } else {
+          this.selectedPersonaIds.splice(idx, 1);
+        }
+      },
+
+      /* ===================== FRIENDLY GREETING ===================== */
+      getGreeting() {
+        const hour = new Date().getHours();
+        if (hour < 12) return "Good morning! 👋";
+        if (hour < 17) return "Good afternoon! 👋";
+        return "Good evening! 👋";
+      },
+
+      /* ===================== SHEET DRAG (pull to dismiss) ===================== */
+      onSheetTouchStart(evt, target) {
+        if (!evt.touches || evt.touches.length !== 1) return;
+        this.sheetDrag.active = true;
+        this.sheetDrag.target = target;
+        this.sheetDrag.startY = evt.touches[0].clientY;
+        this.sheetDrag.currentY = this.sheetDrag.startY;
+        this.sheetDrag.translateY = 0;
+      },
+
+      onSheetTouchMove(evt, target) {
+        if (!this.sheetDrag.active || this.sheetDrag.target !== target) return;
+        if (!evt.touches || evt.touches.length !== 1) return;
+        this.sheetDrag.currentY = evt.touches[0].clientY;
+        const delta = this.sheetDrag.currentY - this.sheetDrag.startY;
+
+        // only allow dragging down
+        this.sheetDrag.translateY = Math.max(0, delta);
+
+        // prevent background scroll
+        if (delta > 0) evt.preventDefault();
+      },
+
+      onSheetTouchEnd(target) {
+        if (!this.sheetDrag.active || this.sheetDrag.target !== target) return;
+
+        const shouldClose = this.sheetDrag.translateY > 110;
+        this.sheetDrag.active = false;
+
+        // reset translate
+        const closeTarget = this.sheetDrag.target;
+        this.sheetDrag.target = null;
+        this.sheetDrag.translateY = 0;
+
+        if (shouldClose) {
+          if (closeTarget === 'form') this.closeForm();
+          if (closeTarget === 'help') this.closeHelpSheet();
+          if (closeTarget === 'dev') this.closeDevSheet();
+        }
+      }
+    }
+  }).mount('#app');
+</script>
+
+<!-- PWA Service Worker Registration -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('Service Worker registered', reg))
+        .catch(err => console.log('Service Worker registration failed', err));
+    });
+  }
+</script>
+
+</body>
+</html>
