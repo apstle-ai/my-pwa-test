@@ -14,8 +14,8 @@
   <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
   <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
   <link rel="apple-touch-icon-precomposed" href="icon-180.png"> <!-- precomposed for older iOS -->
-  <!-- Inline Web App Manifest for iOS 16.4+ support (Base64 encoded to keep single-file) -->
-  <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiUGVyc29uYVNpbSBBSSIsInNob3J0X25hbWUiOiJQZXJzb25hU2ltIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiI2YyZjJmNyIsInRoZW1lX2NvbG9yIjoiIzNiODJmNiIsImljb25zIjpbeyJzcmMiOiJpY29uLTE5Mi5wbmciLCJzaXplcyI6IjE5MngxOTIiLCJ0eXBlIjoiaW1hZ2UvcG5nIn0seyJzcmMiOiJpY29uLTUxMi5wbmciLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2UvcG5nIn1dfQ==">
+  <!-- Inline Web App Manifest for iOS 16.4+ support (Base64 encoded to keep single-file) Added "orientation": "portrait" -->
+  <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiUGVyc29uYVNpbSBBSSIsInNob3J0X25hbWUiOiJQZXJzb25hU2ltIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJvcmllbnRhdGlvbiI6InBvcnRyYWl0IiwiYmFja2dyb3VuZF9jb2xvciI6IiNmMmYyZjciLCJ0aGVtZV9jb2xvciI6IiMzYjgyZjYiLCJpY29ucyI6W3sic3JjIjoiaWNvbi0xOTIucG5nIiwic2l6ZXMiOiIxOTJ4MTkyIiwidHlwZSI6ImltYWdlL3BuZyJ9LHsic3JjIjoiaWNvbi01MTIucG5nIiwic2l6ZXMiOiI1MTJ4NTEyIiwidHlwZSI6ImltYWdlL3BuZyJ9XX0=">
   <title>PersonaSim AI</title>
   <!-- External Libraries (CDNs) -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -1157,9 +1157,11 @@
 
       // Check if running as an installed PWA (standalone mode)
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+      const isIos = /Mac|iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome|CriOS|FxiOS|EdgiOS/.test(navigator.userAgent);
 
-      // Show install hint on first visit ONLY if not already installed
-      if (!isStandalone && !localStorage.getItem('installHintDismissed')) {
+      // Show install hint on first visit ONLY if on iOS Safari and not already installed
+      if (isIos && isSafari && !isStandalone && !localStorage.getItem('installHintDismissed')) {
         this.showInstallHint = true;
       }
 
