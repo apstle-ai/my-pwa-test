@@ -415,8 +415,9 @@
       text-align: right;
     }
     /* ==================== PORTRAIT LOCK (CSS BLOCKER) ==================== */
-    /* On mobile devices rotated sideways, hide the app and show a rotation prompt */
-    @media screen and (max-width: 850px) and (orientation: landscape) {
+    /* On mobile devices rotated sideways, hide the app and show a rotation prompt.
+       max-height: 500px safely targets all smartphones in landscape mode without triggering on iPads */
+    @media screen and (max-height: 500px) and (orientation: landscape) {
       #app-content {
         display: none !important;
       }
@@ -1180,13 +1181,12 @@
       // Check if running as an installed PWA (standalone mode)
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
       
-      // Strict iOS Safari Detection (Ignores Chrome, Firefox, Edge, Opera on iOS)
-      const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
-      const isSafari = /Safari/i.test(navigator.userAgent) && !/CriOS|FxiOS|EdgiOS|Chrome|Edg|OPIOS/i.test(navigator.userAgent);
+      // Broadened iOS Detection to ensure the banner works on any browser before installation
+      const isIos = /iPhone|iPad|iPod|Macintosh/i.test(navigator.userAgent) && 'ontouchend' in document;
 
-      // Show install hint on first visit ONLY if on iOS Safari and not already installed
-      // Note: Changed the localStorage key to "v2" so it resets your memory and shows up for you again!
-      if (isIos && isSafari && !isStandalone && !localStorage.getItem('installHintDismissed_v2')) {
+      // Show install hint on first visit ONLY if on iOS and not already installed
+      // Note: Changed the localStorage key to "v3" so it resets your memory and shows up for you again!
+      if (isIos && !isStandalone && !localStorage.getItem('installHintDismissed_v3')) {
         this.showInstallHint = true;
       }
 
@@ -1597,7 +1597,7 @@
       },
       dismissInstallHint() {
         this.showInstallHint = false;
-        localStorage.setItem('installHintDismissed_v2', 'true');
+        localStorage.setItem('installHintDismissed_v3', 'true');
       },
       /* ===================== FILTERING ===================== */
       getUniqueTags() {
