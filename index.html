@@ -1088,7 +1088,7 @@
         // Filtering for simulation selection
         searchTerm: '',
         searchFocused: false,
-        selectedFilterTags: [],
+        selectedFilterTags:[],
         uniqueTags:[],
         // Account Info & Help Sheet
         userProfile: { name: '', photo: null },
@@ -1155,10 +1155,14 @@
       window.addEventListener('focusin', this.handleFocusIn);
       window.addEventListener('focusout', this.handleFocusOut);
 
-      // Show install hint on first visit
-      if (!localStorage.getItem('installHintDismissed')) {
+      // Check if running as an installed PWA (standalone mode)
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+      // Show install hint on first visit ONLY if not already installed
+      if (!isStandalone && !localStorage.getItem('installHintDismissed')) {
         this.showInstallHint = true;
       }
+
       // Load User Profile from localStorage
       const savedProfile = localStorage.getItem('personaSimUserProfile');
       if (savedProfile) {
