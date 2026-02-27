@@ -414,630 +414,652 @@
       min-width: 22px;
       text-align: right;
     }
+    /* ==================== PORTRAIT LOCK (CSS BLOCKER) ==================== */
+    /* On mobile devices rotated sideways, hide the app and show a rotation prompt */
+    @media screen and (max-width: 850px) and (orientation: landscape) {
+      #app-content {
+        display: none !important;
+      }
+      #landscape-blocker {
+        display: flex !important;
+      }
+    }
   </style>
 </head>
 <!-- ontouchstart="" is an iOS hack to instantly enable CSS :active pseudo-classes for buttons -->
 <body class="text-gray-900 overflow-hidden h-screen w-screen flex flex-col" ontouchstart="">
 <div id="app" class="h-full w-full flex flex-col">
-  <!-- Installation Hint Banner for iOS users -->
-  <div v-if="showInstallHint" class="fixed top-0 left-0 right-0 bg-blue-600 text-white text-sm p-3 flex items-center justify-between z-50 shadow-md">
-    <div class="flex items-center">
-      <i class="fa-solid fa-info-circle mr-2"></i>
-      <span>To install as a real app: Tap the Share button → "Add to Home Screen"</span>
-    </div>
-    <button @click="dismissInstallHint" class="text-white underline text-xs font-medium">Got it</button>
+
+  <!-- ===================== LANDSCAPE BLOCKER ===================== -->
+  <div id="landscape-blocker" class="hidden fixed inset-0 bg-[#f2f2f7] z-[9999] flex-col items-center justify-center text-center px-6">
+    <i class="fa-solid fa-mobile-screen text-5xl text-blue-500 mb-6 rotate-90 transition-transform duration-700"></i>
+    <h2 class="text-xl font-bold text-gray-900 mb-2 tracking-tight">Please Rotate Your Device</h2>
+    <p class="text-gray-500 text-sm max-w-sm">PersonaSim AI is optimized for portrait mode. Please turn your phone upright to continue.</p>
   </div>
-  <!-- Header -->
-  <header class="bg-white/80 backdrop-blur-md border-b border-gray-200 pt-safe px-4 pb-3 flex justify-between items-end shrink-0 z-10">
-    <h1 class="text-xl font-semibold tracking-tight">{{ tabTitles[currentTab] }}</h1>
-    <!-- Account Icon when on Dashboard -->
-    <button v-if="currentTab === 'dashboard'" @click="setTab('account')" class="text-gray-400 hover:text-blue-500 transition-colors">
-      <i class="fa-solid fa-circle-user text-2xl"></i>
-    </button>
-    <button v-if="currentTab === 'personas'" @click="openForm()" class="text-blue-500 font-medium">
-      <i class="fa-solid fa-plus mr-1"></i> Add
-    </button>
-  </header>
-  <!-- Main Content Area -->
-  <main class="flex-1 overflow-y-auto p-4 pb-24 relative">
-    <!-- GENERIC SMOOTH PAGE TRANSITION WRAPPER -->
-    <Transition name="page" mode="out-in">
-      <div :key="currentTab" class="tab-page h-full">
-        <!-- Dashboard - First Page -->
-        <div v-if="currentTab === 'dashboard'" class="space-y-6">
-          <!-- Greeting -->
-          <div class="text-center pt-8 pb-6">
-            <h2 class="text-3xl font-semibold text-gray-900">{{ greeting }}</h2>
-            <p class="text-gray-500 mt-1">Ready to simulate your team today?</p>
-          </div>
-          <!-- Stats Cards -->
-          <div class="grid grid-cols-2 gap-4">
-            <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
-              <div class="flex items-center justify-between">
-                <div>
-                  <p class="text-xs text-gray-500 font-medium">TOTAL PERSONAS</p>
-                  <p class="text-4xl font-semibold text-blue-600 mt-1">{{ personas.length }}</p>
-                </div>
-                <i class="fa-solid fa-users text-4xl text-blue-200"></i>
-              </div>
+
+  <!-- ===================== MAIN APP CONTENT ===================== -->
+  <div id="app-content" class="h-full w-full flex flex-col">
+
+    <!-- Installation Hint Banner for iOS users -->
+    <div v-if="showInstallHint" class="fixed top-0 left-0 right-0 bg-blue-600 text-white text-sm p-3 flex items-center justify-between z-50 shadow-md">
+      <div class="flex items-center">
+        <i class="fa-solid fa-info-circle mr-2"></i>
+        <span>To install as a real app: Tap the Share button → "Add to Home Screen"</span>
+      </div>
+      <button @click="dismissInstallHint" class="text-white underline text-xs font-medium shrink-0 ml-2">Got it</button>
+    </div>
+    <!-- Header -->
+    <header class="bg-white/80 backdrop-blur-md border-b border-gray-200 pt-safe px-4 pb-3 flex justify-between items-end shrink-0 z-10">
+      <h1 class="text-xl font-semibold tracking-tight">{{ tabTitles[currentTab] }}</h1>
+      <!-- Account Icon when on Dashboard -->
+      <button v-if="currentTab === 'dashboard'" @click="setTab('account')" class="text-gray-400 hover:text-blue-500 transition-colors">
+        <i class="fa-solid fa-circle-user text-2xl"></i>
+      </button>
+      <button v-if="currentTab === 'personas'" @click="openForm()" class="text-blue-500 font-medium">
+        <i class="fa-solid fa-plus mr-1"></i> Add
+      </button>
+    </header>
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto p-4 pb-24 relative">
+      <!-- GENERIC SMOOTH PAGE TRANSITION WRAPPER -->
+      <Transition name="page" mode="out-in">
+        <div :key="currentTab" class="tab-page h-full">
+          <!-- Dashboard - First Page -->
+          <div v-if="currentTab === 'dashboard'" class="space-y-6">
+            <!-- Greeting -->
+            <div class="text-center pt-8 pb-6">
+              <h2 class="text-3xl font-semibold text-gray-900">{{ greeting }}</h2>
+              <p class="text-gray-500 mt-1">Ready to simulate your team today?</p>
             </div>
-            <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
-              <div class="flex items-center justify-between">
-                <div>
-                  <p class="text-xs text-gray-500 font-medium">SIMULATIONS RUN</p>
-                  <p class="text-4xl font-semibold text-blue-600 mt-1">{{ simulations.length }}</p>
-                </div>
-                <i class="fa-solid fa-brain text-4xl text-blue-200"></i>
-              </div>
-            </div>
-          </div>
-          <!-- Current Model Card -->
-          <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
-            <p class="text-xs text-gray-500 font-medium">CURRENT LLM MODEL</p>
-            <p class="text-2xl font-semibold text-gray-900 mt-2">{{ settings.model || 'Not configured' }}</p>
-            <p class="text-sm text-gray-500">{{ settings.provider || '—' }}</p>
-          </div>
-          <!-- Quick Actions -->
-          <div class="space-y-3">
-            <button @click="setTab('simulate')" class="w-full bg-blue-600 text-white rounded-3xl py-4 font-semibold flex items-center justify-center gap-2 active:bg-blue-700 transition-colors">
-              <i class="fa-solid fa-bolt"></i>
-              Start New Simulation
-            </button>
-            <button @click="setTab('personas'); openForm()" class="w-full bg-white border border-gray-200 text-gray-900 rounded-3xl py-4 font-semibold flex items-center justify-center gap-2 active:bg-gray-50 transition-colors">
-              <i class="fa-solid fa-plus"></i>
-              Add New Persona
-            </button>
-            <button @click="setTab('history')" class="w-full bg-white border border-gray-200 text-gray-900 rounded-3xl py-4 font-semibold flex items-center justify-center gap-2 active:bg-gray-50 transition-colors">
-              <i class="fa-solid fa-clock-rotate-left"></i>
-              View All Simulations
-            </button>
-          </div>
-        </div>
-        <!-- TAB: PERSONAS -->
-        <div v-if="currentTab === 'personas'">
-          <div v-if="personas.length === 0" class="text-center mt-20 text-gray-500">
-            <i class="fa-solid fa-users text-5xl mb-4 text-gray-300"></i>
-            <p class="text-lg font-medium">No Personas Yet</p>
-            <p class="text-sm mt-1">Tap Add to build your team.</p>
-          </div>
-          <!-- Delete All button -->
-          <button v-if="personas.length > 0" @click="deleteAllPersonas" class="w-full mb-6 bg-red-50 text-red-600 rounded-2xl py-3.5 font-semibold text-sm active:bg-red-100 transition-colors shadow-sm">
-            Delete All Personas
-          </button>
-          <div class="ios-group">
-            <div v-for="(p, idx) in personas" :key="p.id">
-              <div @click="openForm(p)" class="ios-cell">
-                <div class="min-w-0">
-                  <h3 class="font-semibold text-[17px] truncate">{{ p.name }}</h3>
-                  <p class="text-[13px] ios-muted truncate">{{ p.title }} &bull; {{ p.office }}</p>
-                  <div v-if="p.tags || p.superiors || p.directReports" class="flex gap-1 mt-2 flex-wrap">
-                    <span v-for="tag in splitTags(p.tags)" class="bg-blue-50 text-blue-600 text-xs px-2 py-0.5 rounded-full font-medium">{{ tag }}</span>
-                    <span v-for="sup in splitTags(p.superiors)" class="bg-purple-50 text-purple-600 text-xs px-2 py-0.5 rounded-full font-medium" title="Superior"><i class="fa-solid fa-arrow-up mr-1 text-[10px]"></i>{{ sup }}</span>
-                    <span v-for="rep in splitTags(p.directReports)" class="bg-teal-50 text-teal-600 text-xs px-2 py-0.5 rounded-full font-medium" title="Direct Report"><i class="fa-solid fa-arrow-down mr-1 text-[10px]"></i>{{ rep }}</span>
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-xs text-gray-500 font-medium">TOTAL PERSONAS</p>
+                    <p class="text-4xl font-semibold text-blue-600 mt-1">{{ personas.length }}</p>
                   </div>
+                  <i class="fa-solid fa-users text-4xl text-blue-200"></i>
                 </div>
-                <i class="fa-solid fa-chevron-right text-gray-300"></i>
               </div>
-              <div v-if="idx !== personas.length - 1" class="ios-sep"></div>
+              <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-xs text-gray-500 font-medium">SIMULATIONS RUN</p>
+                    <p class="text-4xl font-semibold text-blue-600 mt-1">{{ simulations.length }}</p>
+                  </div>
+                  <i class="fa-solid fa-brain text-4xl text-blue-200"></i>
+                </div>
+              </div>
+            </div>
+            <!-- Current Model Card -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+              <p class="text-xs text-gray-500 font-medium">CURRENT LLM MODEL</p>
+              <p class="text-2xl font-semibold text-gray-900 mt-2">{{ settings.model || 'Not configured' }}</p>
+              <p class="text-sm text-gray-500">{{ settings.provider || '—' }}</p>
+            </div>
+            <!-- Quick Actions -->
+            <div class="space-y-3">
+              <button @click="setTab('simulate')" class="w-full bg-blue-600 text-white rounded-3xl py-4 font-semibold flex items-center justify-center gap-2 active:bg-blue-700 transition-colors">
+                <i class="fa-solid fa-bolt"></i>
+                Start New Simulation
+              </button>
+              <button @click="setTab('personas'); openForm()" class="w-full bg-white border border-gray-200 text-gray-900 rounded-3xl py-4 font-semibold flex items-center justify-center gap-2 active:bg-gray-50 transition-colors">
+                <i class="fa-solid fa-plus"></i>
+                Add New Persona
+              </button>
+              <button @click="setTab('history')" class="w-full bg-white border border-gray-200 text-gray-900 rounded-3xl py-4 font-semibold flex items-center justify-center gap-2 active:bg-gray-50 transition-colors">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                View All Simulations
+              </button>
             </div>
           </div>
-        </div>
-        <!-- TAB: SIMULATE -->
-        <div v-if="currentTab === 'simulate'" class="h-full flex flex-col">
-          <!-- Step 1: Select Group -->
-          <div v-if="simStep === 1">
-            <p class="text-gray-600 mb-3 text-sm font-medium">Select team members to include in this simulation:</p>
-            <!-- Search + Filter Controls -->
-            <div class="mb-4 space-y-4">
-              <!-- iOS Search Bar + Cancel -->
-              <div class="ios-search-wrap">
-                <div class="ios-search">
-                  <i class="fa-solid fa-magnifying-glass icon"></i>
-                  <input
-                    ref="searchInput"
-                    v-model="searchTerm"
-                    @focus="searchFocused = true"
-                    @blur="onSearchBlur"
-                    placeholder="Search"
-                    inputmode="search"
-                    autocomplete="off"
-                    autocapitalize="none"
-                    spellcheck="false"
-                  >
-                  <button v-if="searchTerm" class="clear" @click="clearSearch" aria-label="Clear search">
-                    <i class="fa-solid fa-circle-xmark"></i>
-                  </button>
-                </div>
-                <button v-if="searchFocused" class="ios-cancel-btn" @click="cancelSearch">Cancel</button>
-              </div>
-              <!-- Tag Filters -->
-              <div v-if="uniqueTags.length > 0">
-                <p class="text-xs text-gray-500 mb-2 font-medium">Quick filter by tag</p>
-                <div class="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
-                  <span
-                    v-for="tag in uniqueTags"
-                    :key="tag"
-                    @click="toggleFilterTag(tag)"
-                    :class="selectedFilterTags.includes(tag) ? 'bg-blue-600 text-white' : 'bg-white border border-gray-200 text-gray-700'"
-                    class="flex-shrink-0 px-4 py-1 text-sm rounded-2xl whitespace-nowrap active:scale-95 transition-all cursor-pointer">
-                    {{ tag }}
-                  </span>
-                </div>
-              </div>
-              <!-- Filter Actions -->
-              <div class="flex gap-3 text-sm">
-                <button @click="clearFilters"
-                        class="flex-1 py-2 bg-gray-100 text-gray-600 rounded-2xl font-medium active:bg-gray-200 transition-colors">
-                  Clear Filters
-                </button>
-                <button @click="selectAllVisible"
-                        class="flex-1 py-2 bg-blue-100 text-blue-700 rounded-2xl font-medium active:bg-blue-200 transition-colors">
-                  Select All Visible
-                </button>
-              </div>
-              <!-- Results count -->
-              <p class="text-xs text-gray-500 text-center">
-                Showing {{ getFilteredPersonas().length }} of {{ personas.length }} people
-              </p>
+          <!-- TAB: PERSONAS -->
+          <div v-if="currentTab === 'personas'">
+            <div v-if="personas.length === 0" class="text-center mt-20 text-gray-500">
+              <i class="fa-solid fa-users text-5xl mb-4 text-gray-300"></i>
+              <p class="text-lg font-medium">No Personas Yet</p>
+              <p class="text-sm mt-1">Tap Add to build your team.</p>
             </div>
-            <!-- BUTTON PLACED ABOVE THE LIST SO IT DOESN'T DISAPPEAR -->
-            <button @click="simStep = 2" :disabled="selectedPersonaIds.length === 0" class="w-full mb-4 bg-blue-600 text-white rounded-2xl py-3.5 font-semibold text-lg disabled:opacity-50 disabled:bg-gray-400 transition-colors shadow-sm active:bg-blue-700">
-              Continue ({{ selectedPersonaIds.length }} Selected)
+            <!-- Delete All button -->
+            <button v-if="personas.length > 0" @click="deleteAllPersonas" class="w-full mb-6 bg-red-50 text-red-600 rounded-2xl py-3.5 font-semibold text-sm active:bg-red-100 transition-colors shadow-sm">
+              Delete All Personas
             </button>
-            <!-- iOS MULTISELECT LIST (no checkboxes) -->
-            <div class="ios-group mb-6">
-              <div v-for="(p, idx) in getFilteredPersonas()" :key="p.id">
-                <div
-                  @click="togglePersonaSelection(p.id)"
-                  :class="isPersonaSelected(p.id) ? 'ios-cell ios-selected' : 'ios-cell'"
-                  role="button"
-                  tabindex="0"
-                >
+            <div class="ios-group">
+              <div v-for="(p, idx) in personas" :key="p.id">
+                <div @click="openForm(p)" class="ios-cell">
                   <div class="min-w-0">
-                    <p class="font-semibold text-[17px] truncate">{{ p.name }}</p>
-                    <p class="text-[13px] ios-muted truncate">{{ p.title }} • {{ p.office }}</p>
+                    <h3 class="font-semibold text-[17px] truncate">{{ p.name }}</h3>
+                    <p class="text-[13px] ios-muted truncate">{{ p.title }} &bull; {{ p.office }}</p>
                     <div v-if="p.tags || p.superiors || p.directReports" class="flex gap-1 mt-2 flex-wrap">
-                      <span v-for="tag in splitTags(p.tags)" class="bg-blue-50 text-blue-600 text-xs px-2 py-0.5 rounded-full">{{ tag }}</span>
-                      <span v-for="sup in splitTags(p.superiors)" class="bg-purple-50 text-purple-600 text-xs px-2 py-0.5 rounded-full"><i class="fa-solid fa-arrow-up mr-1 text-[10px]"></i>{{ sup }}</span>
-                      <span v-for="rep in splitTags(p.directReports)" class="bg-teal-50 text-teal-600 text-xs px-2 py-0.5 rounded-full"><i class="fa-solid fa-arrow-down mr-1 text-[10px]"></i>{{ rep }}</span>
+                      <span v-for="tag in splitTags(p.tags)" class="bg-blue-50 text-blue-600 text-xs px-2 py-0.5 rounded-full font-medium">{{ tag }}</span>
+                      <span v-for="sup in splitTags(p.superiors)" class="bg-purple-50 text-purple-600 text-xs px-2 py-0.5 rounded-full font-medium" title="Superior"><i class="fa-solid fa-arrow-up mr-1 text-[10px]"></i>{{ sup }}</span>
+                      <span v-for="rep in splitTags(p.directReports)" class="bg-teal-50 text-teal-600 text-xs px-2 py-0.5 rounded-full font-medium" title="Direct Report"><i class="fa-solid fa-arrow-down mr-1 text-[10px]"></i>{{ rep }}</span>
                     </div>
                   </div>
-                  <div class="ios-check">
-                    <i v-if="isPersonaSelected(p.id)" class="fa-solid fa-check"></i>
+                  <i class="fa-solid fa-chevron-right text-gray-300"></i>
+                </div>
+                <div v-if="idx !== personas.length - 1" class="ios-sep"></div>
+              </div>
+            </div>
+          </div>
+          <!-- TAB: SIMULATE -->
+          <div v-if="currentTab === 'simulate'" class="h-full flex flex-col">
+            <!-- Step 1: Select Group -->
+            <div v-if="simStep === 1">
+              <p class="text-gray-600 mb-3 text-sm font-medium">Select team members to include in this simulation:</p>
+              <!-- Search + Filter Controls -->
+              <div class="mb-4 space-y-4">
+                <!-- iOS Search Bar + Cancel -->
+                <div class="ios-search-wrap">
+                  <div class="ios-search">
+                    <i class="fa-solid fa-magnifying-glass icon"></i>
+                    <input
+                      ref="searchInput"
+                      v-model="searchTerm"
+                      @focus="searchFocused = true"
+                      @blur="onSearchBlur"
+                      placeholder="Search"
+                      inputmode="search"
+                      autocomplete="off"
+                      autocapitalize="none"
+                      spellcheck="false"
+                    >
+                    <button v-if="searchTerm" class="clear" @click="clearSearch" aria-label="Clear search">
+                      <i class="fa-solid fa-circle-xmark"></i>
+                    </button>
+                  </div>
+                  <button v-if="searchFocused" class="ios-cancel-btn" @click="cancelSearch">Cancel</button>
+                </div>
+                <!-- Tag Filters -->
+                <div v-if="uniqueTags.length > 0">
+                  <p class="text-xs text-gray-500 mb-2 font-medium">Quick filter by tag</p>
+                  <div class="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+                    <span
+                      v-for="tag in uniqueTags"
+                      :key="tag"
+                      @click="toggleFilterTag(tag)"
+                      :class="selectedFilterTags.includes(tag) ? 'bg-blue-600 text-white' : 'bg-white border border-gray-200 text-gray-700'"
+                      class="flex-shrink-0 px-4 py-1 text-sm rounded-2xl whitespace-nowrap active:scale-95 transition-all cursor-pointer">
+                      {{ tag }}
+                    </span>
                   </div>
                 </div>
-                <div v-if="idx !== getFilteredPersonas().length - 1" class="ios-sep"></div>
+                <!-- Filter Actions -->
+                <div class="flex gap-3 text-sm">
+                  <button @click="clearFilters"
+                          class="flex-1 py-2 bg-gray-100 text-gray-600 rounded-2xl font-medium active:bg-gray-200 transition-colors">
+                    Clear Filters
+                  </button>
+                  <button @click="selectAllVisible"
+                          class="flex-1 py-2 bg-blue-100 text-blue-700 rounded-2xl font-medium active:bg-blue-200 transition-colors">
+                    Select All Visible
+                  </button>
+                </div>
+                <!-- Results count -->
+                <p class="text-xs text-gray-500 text-center">
+                  Showing {{ getFilteredPersonas().length }} of {{ personas.length }} people
+                </p>
+              </div>
+              <!-- BUTTON PLACED ABOVE THE LIST SO IT DOESN'T DISAPPEAR -->
+              <button @click="simStep = 2" :disabled="selectedPersonaIds.length === 0" class="w-full mb-4 bg-blue-600 text-white rounded-2xl py-3.5 font-semibold text-lg disabled:opacity-50 disabled:bg-gray-400 transition-colors shadow-sm active:bg-blue-700">
+                Continue ({{ selectedPersonaIds.length }} Selected)
+              </button>
+              <!-- iOS MULTISELECT LIST (no checkboxes) -->
+              <div class="ios-group mb-6">
+                <div v-for="(p, idx) in getFilteredPersonas()" :key="p.id">
+                  <div
+                    @click="togglePersonaSelection(p.id)"
+                    :class="isPersonaSelected(p.id) ? 'ios-cell ios-selected' : 'ios-cell'"
+                    role="button"
+                    tabindex="0"
+                  >
+                    <div class="min-w-0">
+                      <p class="font-semibold text-[17px] truncate">{{ p.name }}</p>
+                      <p class="text-[13px] ios-muted truncate">{{ p.title }} • {{ p.office }}</p>
+                      <div v-if="p.tags || p.superiors || p.directReports" class="flex gap-1 mt-2 flex-wrap">
+                        <span v-for="tag in splitTags(p.tags)" class="bg-blue-50 text-blue-600 text-xs px-2 py-0.5 rounded-full">{{ tag }}</span>
+                        <span v-for="sup in splitTags(p.superiors)" class="bg-purple-50 text-purple-600 text-xs px-2 py-0.5 rounded-full"><i class="fa-solid fa-arrow-up mr-1 text-[10px]"></i>{{ sup }}</span>
+                        <span v-for="rep in splitTags(p.directReports)" class="bg-teal-50 text-teal-600 text-xs px-2 py-0.5 rounded-full"><i class="fa-solid fa-arrow-down mr-1 text-[10px]"></i>{{ rep }}</span>
+                      </div>
+                    </div>
+                    <div class="ios-check">
+                      <i v-if="isPersonaSelected(p.id)" class="fa-solid fa-check"></i>
+                    </div>
+                  </div>
+                  <div v-if="idx !== getFilteredPersonas().length - 1" class="ios-sep"></div>
+                </div>
+              </div>
+            </div>
+            <!-- Step 2: Input Scenario -->
+            <div v-if="simStep === 2" class="flex flex-col h-full">
+              <div class="flex items-center mb-4">
+                <button @click="simStep = 1" class="text-blue-500 mr-2"><i class="fa-solid fa-chevron-left"></i> Back</button>
+              </div>
+              <p class="text-gray-600 mb-2 font-medium">What scenario or question do you want to run against this group?</p>
+              <textarea v-model="currentScenario" rows="5" placeholder="e.g. How should we announce the new hybrid work policy?" class="w-full p-3 border border-gray-300 rounded-2xl mb-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none bg-white"></textarea>
+              <!-- More quick scenarios -->
+              <div class="flex flex-wrap gap-2 mb-4">
+                <span @click="currentScenario = 'How should we announce the new hybrid policy?'" class="bg-white border border-gray-200 text-xs px-3 py-1 rounded-full text-gray-600 active:bg-gray-100">Hybrid Policy</span>
+                <span @click="currentScenario = 'Best way to get buy-in for the reorg?'" class="bg-white border border-gray-200 text-xs px-3 py-1 rounded-full text-gray-600 active:bg-gray-100">Reorg Buy-in</span>
+                <span @click="currentScenario = 'How will this team react to a 10% budget cut?'" class="bg-white border border-gray-200 text-xs px-3 py-1 rounded-full text-gray-600 active:bg-gray-100">Budget Cut</span>
+                <span @click="currentScenario = 'Optimal messaging for the Q3 town hall?'" class="bg-white border border-gray-200 text-xs px-3 py-1 rounded-full text-gray-600 active:bg-gray-100">Q3 Town Hall</span>
+                <span @click="currentScenario = 'Best way to introduce AI tools to this group?'" class="bg-white border border-gray-200 text-xs px-3 py-1 rounded-full text-gray-600 active:bg-gray-100">Introduce AI Tools</span>
+                <span @click="currentScenario = 'How should we handle the upcoming merger announcement?'" class="bg-white border border-gray-200 text-xs px-3 py-1 rounded-full text-gray-600 active:bg-gray-100">Merger Announcement</span>
+                <span @click="currentScenario = 'Recommended communication plan for performance reviews?'" class="bg-white border border-gray-200 text-xs px-3 py-1 rounded-full text-gray-600 active:bg-gray-100">Performance Reviews</span>
+                <span @click="currentScenario = 'How to get buy-in for switching to a new project management tool?'" class="bg-white border border-gray-200 text-xs px-3 py-1 rounded-full text-gray-600 active:bg-gray-100">New PM Tool</span>
+              </div>
+              <button @click="runSimulation" :disabled="!currentScenario.trim() || isSimulating" class="mt-auto w-full bg-blue-600 text-white rounded-2xl py-3.5 font-semibold text-lg disabled:opacity-50 flex justify-center items-center">
+                <i v-if="isSimulating" class="fa-solid fa-spinner fa-spin mr-2"></i>
+                {{ isSimulating ? 'Simulating Team Reaction...' : 'Send to AI' }}
+              </button>
+            </div>
+            <!-- Step 3: Result -->
+            <div v-if="simStep === 3" class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100">
+              <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h3 class="font-bold text-lg text-blue-600"><i class="fa-solid fa-brain mr-1"></i> AI Strategy</h3>
+                <button @click="simStep = 1; currentScenario = '';" class="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full font-medium">New Run</button>
+              </div>
+              <div class="prose prose-sm text-gray-800" v-html="renderMarkdown(currentResponse)"></div>
+            </div>
+          </div>
+          <!-- TAB: HISTORY -->
+          <div v-if="currentTab === 'history'">
+            <div v-if="simulations.length === 0" class="text-center mt-20 text-gray-500">
+              <i class="fa-solid fa-clock-rotate-left text-5xl mb-4 text-gray-300"></i>
+              <p class="text-lg font-medium">No History</p>
+            </div>
+            <div class="space-y-4">
+              <div v-for="sim in simulations" :key="sim.id" class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100">
+                <p class="text-xs text-gray-400 mb-1">{{ new Date(sim.timestamp).toLocaleString() }} &bull; {{ sim.llm_model }}</p>
+                <p class="font-medium text-gray-900 mb-2 truncate">{{ sim.scenario }}</p>
+                <div class="prose prose-sm text-gray-700 bg-gray-50 p-3 rounded-2xl max-h-32 overflow-hidden relative">
+                  <div v-html="renderMarkdown(sim.response)"></div>
+                  <div class="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-gray-50 to-transparent"></div>
+                </div>
               </div>
             </div>
           </div>
-          <!-- Step 2: Input Scenario -->
-          <div v-if="simStep === 2" class="flex flex-col h-full">
-            <div class="flex items-center mb-4">
-              <button @click="simStep = 1" class="text-blue-500 mr-2"><i class="fa-solid fa-chevron-left"></i> Back</button>
+          <!-- TAB: SETTINGS -->
+          <div v-if="currentTab === 'settings'" class="space-y-6">
+            <div class="ios-section-title">LLM Configuration</div>
+            <div class="ios-group">
+              <div class="ios-cell">
+                <div class="min-w-0">
+                  <div class="text-[13px] ios-muted font-semibold mb-1">Provider Preset</div>
+                  <select v-model="settings.provider" @change="applyPreset" class="w-full p-2 bg-transparent outline-none">
+                    <option value="OpenAI">OpenAI (Default)</option>
+                    <option value="Anthropic">Anthropic</option>
+                    <option value="Custom">Custom / Local</option>
+                  </select>
+                </div>
+              </div>
+              <div class="ios-sep"></div>
+              <div class="ios-cell">
+                <div class="min-w-0 w-full">
+                  <div class="text-[13px] ios-muted font-semibold mb-1">Base URL</div>
+                  <input type="text" v-model="settings.baseUrl" class="w-full bg-transparent outline-none">
+                </div>
+              </div>
+              <div class="ios-sep"></div>
+              <div class="ios-cell">
+                <div class="min-w-0 w-full">
+                  <div class="text-[13px] ios-muted font-semibold mb-1">API Key (Stored Locally)</div>
+                  <input type="password" v-model="settings.apiKey" placeholder="sk-..." class="w-full bg-transparent outline-none">
+                </div>
+              </div>
+              <div class="ios-sep"></div>
+              <div class="ios-cell">
+                <div class="min-w-0 w-full">
+                  <div class="text-[13px] ios-muted font-semibold mb-1">Model Name</div>
+                  <input type="text" v-model="settings.model" placeholder="gpt-4o" class="w-full bg-transparent outline-none">
+                </div>
+              </div>
             </div>
-            <p class="text-gray-600 mb-2 font-medium">What scenario or question do you want to run against this group?</p>
-            <textarea v-model="currentScenario" rows="5" placeholder="e.g. How should we announce the new hybrid work policy?" class="w-full p-3 border border-gray-300 rounded-2xl mb-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none bg-white"></textarea>
-            <!-- More quick scenarios -->
-            <div class="flex flex-wrap gap-2 mb-4">
-              <span @click="currentScenario = 'How should we announce the new hybrid policy?'" class="bg-white border border-gray-200 text-xs px-3 py-1 rounded-full text-gray-600 active:bg-gray-100">Hybrid Policy</span>
-              <span @click="currentScenario = 'Best way to get buy-in for the reorg?'" class="bg-white border border-gray-200 text-xs px-3 py-1 rounded-full text-gray-600 active:bg-gray-100">Reorg Buy-in</span>
-              <span @click="currentScenario = 'How will this team react to a 10% budget cut?'" class="bg-white border border-gray-200 text-xs px-3 py-1 rounded-full text-gray-600 active:bg-gray-100">Budget Cut</span>
-              <span @click="currentScenario = 'Optimal messaging for the Q3 town hall?'" class="bg-white border border-gray-200 text-xs px-3 py-1 rounded-full text-gray-600 active:bg-gray-100">Q3 Town Hall</span>
-              <span @click="currentScenario = 'Best way to introduce AI tools to this group?'" class="bg-white border border-gray-200 text-xs px-3 py-1 rounded-full text-gray-600 active:bg-gray-100">Introduce AI Tools</span>
-              <span @click="currentScenario = 'How should we handle the upcoming merger announcement?'" class="bg-white border border-gray-200 text-xs px-3 py-1 rounded-full text-gray-600 active:bg-gray-100">Merger Announcement</span>
-              <span @click="currentScenario = 'Recommended communication plan for performance reviews?'" class="bg-white border border-gray-200 text-xs px-3 py-1 rounded-full text-gray-600 active:bg-gray-100">Performance Reviews</span>
-              <span @click="currentScenario = 'How to get buy-in for switching to a new project management tool?'" class="bg-white border border-gray-200 text-xs px-3 py-1 rounded-full text-gray-600 active:bg-gray-100">New PM Tool</span>
+            <div class="ios-section-title">Prompt Engineering</div>
+            <div class="ios-group">
+              <div class="ios-cell items-start">
+                <div class="min-w-0 w-full">
+                  <div class="text-[13px] ios-muted font-semibold mb-1">System Prompt</div>
+                  <textarea v-model="settings.systemPrompt" rows="4" :placeholder="defaultSystemPrompt" class="w-full bg-transparent outline-none resize-none text-[15px] text-gray-700"></textarea>
+                </div>
+              </div>
             </div>
-            <button @click="runSimulation" :disabled="!currentScenario.trim() || isSimulating" class="mt-auto w-full bg-blue-600 text-white rounded-2xl py-3.5 font-semibold text-lg disabled:opacity-50 flex justify-center items-center">
-              <i v-if="isSimulating" class="fa-solid fa-spinner fa-spin mr-2"></i>
-              {{ isSimulating ? 'Simulating Team Reaction...' : 'Send to AI' }}
+            <div class="h-6 mt-2">
+              <p v-if="settingsSaved" class="text-green-600 text-sm text-center font-medium transition-opacity duration-300"><i class="fa-solid fa-check"></i> Changes saved</p>
+              <p v-else class="text-gray-400 text-xs text-center font-medium">Changes save automatically</p>
+            </div>
+          </div>
+          <!-- TAB: ACCOUNT -->
+          <div v-if="currentTab === 'account'" class="flex flex-col h-full space-y-6">
+            <!-- Profile Header -->
+            <div class="flex flex-col items-center bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+              <label class="relative cursor-pointer group">
+                <div class="w-28 h-28 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center border-4 border-white shadow-md">
+                  <img v-if="userProfile.photo" :src="userProfile.photo" class="w-full h-full object-cover" />
+                  <i v-else class="fa-solid fa-user text-5xl text-gray-300"></i>
+                </div>
+                <div class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <i class="fa-solid fa-camera text-white text-xl"></i>
+                </div>
+                <input type="file" accept="image/*" class="hidden" @change="onPhotoSelected">
+              </label>
+              <p class="text-[10px] text-gray-400 mt-2 uppercase tracking-wide font-semibold">Tap to upload photo</p>
+              <input type="text" v-model="userProfile.name" @input="saveProfile" placeholder="Enter your account name" class="mt-3 w-full text-center text-xl font-semibold text-gray-900 bg-transparent border-b border-transparent hover:border-gray-200 focus:border-blue-500 outline-none transition-colors pb-1 placeholder-gray-300">
+            </div>
+            <div class="ios-section-title">Account</div>
+            <!-- Menu Lines -->
+            <div class="ios-group">
+              <div class="ios-cell" @click="openHelpSheet">
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <i class="fa-solid fa-circle-question text-lg"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <span class="block font-semibold text-gray-800 text-[17px] truncate">Help / Guide</span>
+                    <span class="block text-[13px] ios-muted truncate">Learn how to use PersonaSim</span>
+                  </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-gray-300 text-sm"></i>
+              </div>
+              <div v-if="devModeActive" class="ios-sep"></div>
+              <!-- Developer Tools Button (Visible only when devModeActive is true) -->
+              <div v-if="devModeActive" class="ios-cell" @click="openDevSheet">
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center">
+                    <i class="fa-solid fa-code text-lg"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <span class="block font-semibold text-gray-800 text-[17px] truncate">Developer Tools</span>
+                    <span class="block text-[13px] text-purple-500 truncate">Test Data & Diagnostics</span>
+                  </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-gray-300 text-sm"></i>
+              </div>
+            </div>
+            <!-- Footer -->
+            <div class="mt-auto text-center pt-8 text-gray-400 text-xs space-y-1 pb-4">
+              <p class="font-medium text-gray-500">PersonaSim AI</p>
+              <p @click="handleVersionTap" class="cursor-pointer active:scale-95 transition-transform inline-block px-4 py-1 select-none">Version {{ appVersion }}</p>
+              <p>Build {{ appBuild }}</p>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </main>
+    <!-- Bottom Navigation Bar (iOS Style) -->
+    <nav v-show="!isKeyboardVisible" class="bg-white/90 backdrop-blur-lg border-t border-gray-200 pb-safe pt-2 px-6 flex justify-between items-center fixed bottom-0 w-full z-20">
+      <button @click="setTab('dashboard')" :class="currentTab === 'dashboard' ? 'text-blue-600' : 'text-gray-400'" class="flex flex-col items-center w-16">
+        <i class="fa-solid fa-house text-xl mb-1"></i>
+        <span class="text-[10px] font-medium">Home</span>
+      </button>
+      <button @click="setTab('personas')" :class="currentTab === 'personas' ? 'text-blue-600' : 'text-gray-400'" class="flex flex-col items-center w-16">
+        <i class="fa-solid fa-address-book text-xl mb-1"></i>
+        <span class="text-[10px] font-medium">Personas</span>
+      </button>
+      <button @click="setTab('simulate')" :class="currentTab === 'simulate' ? 'text-blue-600' : 'text-gray-400'" class="flex flex-col items-center w-16">
+        <i class="fa-solid fa-bolt text-xl mb-1"></i>
+        <span class="text-[10px] font-medium">Simulate</span>
+      </button>
+      <button @click="setTab('history')" :class="currentTab === 'history' ? 'text-blue-600' : 'text-gray-400'" class="flex flex-col items-center w-16">
+        <i class="fa-solid fa-clock-rotate-left text-xl mb-1"></i>
+        <span class="text-[10px] font-medium">History</span>
+      </button>
+      <button @click="setTab('settings')" :class="currentTab === 'settings' ? 'text-blue-600' : 'text-gray-400'" class="flex flex-col items-center w-16">
+        <i class="fa-solid fa-gear text-xl mb-1"></i>
+        <span class="text-[10px] font-medium">Settings</span>
+      </button>
+    </nav>
+    <!-- ===================== iOS BOTTOM SHEET: Persona Add/Edit Form ===================== -->
+    <Transition name="fade">
+      <div v-if="showForm" class="ios-backdrop z-50" @click="closeForm"></div>
+    </Transition>
+    <Transition name="sheet">
+      <div v-if="showForm" class="ios-sheet z-50" @click.stop
+           :class="{ 'is-dragging': sheetDrag.active && sheetDrag.target === 'form' }"
+           @touchstart="onSheetTouchStart($event, 'form')"
+           @touchmove="onSheetTouchMove($event, 'form')"
+           @touchend="onSheetTouchEnd('form')"
+           :style="formSheetStyle">
+        <div class="ios-sheet-inner">
+          <div class="ios-grabber"></div>
+          <div class="ios-sheet-header">
+            <button class="ios-nav-btn" @click="closeForm">Cancel</button>
+            <div class="ios-sheet-title">{{ editId ? 'Edit Persona' : 'New Persona' }}</div>
+            <button class="ios-nav-btn right" @click="savePersona">Save</button>
+          </div>
+          <div class="flex-1 overflow-y-auto p-4 space-y-4 pb-12">
+            <div class="ios-section-title">Basics</div>
+            <div class="ios-group">
+              <div class="ios-cell">
+                <div class="min-w-0 w-full">
+                  <div class="text-[13px] ios-muted font-semibold mb-1">Full Name</div>
+                  <input type="text" v-model="form.name" class="w-full bg-transparent outline-none" placeholder="e.g. Jordan Smith">
+                </div>
+              </div>
+              <div class="ios-sep"></div>
+              <div class="ios-cell">
+                <div class="min-w-0 w-full">
+                  <div class="text-[13px] ios-muted font-semibold mb-1">Title / Role</div>
+                  <input type="text" v-model="form.title" class="w-full bg-transparent outline-none" placeholder="e.g. Engineering Manager">
+                </div>
+              </div>
+              <div class="ios-sep"></div>
+              <div class="ios-cell">
+                <div class="min-w-0 w-full">
+                  <div class="text-[13px] ios-muted font-semibold mb-1">Office / Location</div>
+                  <input type="text" v-model="form.office" class="w-full bg-transparent outline-none" placeholder="e.g. Bothell HQ - 3rd Floor">
+                </div>
+              </div>
+            </div>
+            <div class="ios-section-title">Org Context</div>
+            <div class="ios-group">
+              <div class="ios-cell">
+                <div class="min-w-0 w-full">
+                  <div class="text-[13px] ios-muted font-semibold mb-1">Superiors (comma separated)</div>
+                  <input type="text" v-model="form.superiors" class="w-full bg-transparent outline-none" placeholder="e.g. Jane Director">
+                </div>
+              </div>
+              <div class="ios-sep"></div>
+              <div class="ios-cell">
+                <div class="min-w-0 w-full">
+                  <div class="text-[13px] ios-muted font-semibold mb-1">Direct Reports (comma separated)</div>
+                  <input type="text" v-model="form.directReports" class="w-full bg-transparent outline-none" placeholder="e.g. John Doe, Sarah Smith">
+                </div>
+              </div>
+            </div>
+            <div class="ios-section-title">Traits</div>
+            <div class="ios-group">
+              <div class="ios-cell items-start">
+                <div class="min-w-0 w-full">
+                  <div class="text-[13px] ios-muted font-semibold mb-1">Likes</div>
+                  <textarea v-model="form.likes" rows="2" placeholder="Coffee, clear specs, hiking" class="w-full bg-transparent outline-none resize-none"></textarea>
+                </div>
+              </div>
+              <div class="ios-sep"></div>
+              <div class="ios-cell items-start">
+                <div class="min-w-0 w-full">
+                  <div class="text-[13px] ios-muted font-semibold mb-1">Dislikes</div>
+                  <textarea v-model="form.dislikes" rows="2" placeholder="Micromanagement, surprises" class="w-full bg-transparent outline-none resize-none"></textarea>
+                </div>
+              </div>
+              <div class="ios-sep"></div>
+              <div class="ios-cell items-start">
+                <div class="min-w-0 w-full">
+                  <div class="text-[13px] ios-muted font-semibold mb-1">Background / Bio</div>
+                  <textarea v-model="form.background" rows="3" class="w-full bg-transparent outline-none resize-none" placeholder="Short bio..."></textarea>
+                </div>
+              </div>
+              <div class="ios-sep"></div>
+              <div class="ios-cell">
+                <div class="min-w-0 w-full">
+                  <div class="text-[13px] ios-muted font-semibold mb-1">Tags (comma separated)</div>
+                  <input type="text" v-model="form.tags" class="w-full bg-transparent outline-none" placeholder="introvert, remote, senior">
+                </div>
+              </div>
+            </div>
+            <button v-if="editId" @click="deletePersona(editId)" class="w-full bg-red-50 text-red-600 rounded-2xl py-3.5 font-semibold mt-2 active:bg-red-100">
+              Delete Persona
             </button>
-          </div>
-          <!-- Step 3: Result -->
-          <div v-if="simStep === 3" class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100">
-            <div class="flex justify-between items-center mb-4 border-b pb-2">
-              <h3 class="font-bold text-lg text-blue-600"><i class="fa-solid fa-brain mr-1"></i> AI Strategy</h3>
-              <button @click="simStep = 1; currentScenario = '';" class="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full font-medium">New Run</button>
-            </div>
-            <div class="prose prose-sm text-gray-800" v-html="renderMarkdown(currentResponse)"></div>
-          </div>
-        </div>
-        <!-- TAB: HISTORY -->
-        <div v-if="currentTab === 'history'">
-          <div v-if="simulations.length === 0" class="text-center mt-20 text-gray-500">
-            <i class="fa-solid fa-clock-rotate-left text-5xl mb-4 text-gray-300"></i>
-            <p class="text-lg font-medium">No History</p>
-          </div>
-          <div class="space-y-4">
-            <div v-for="sim in simulations" :key="sim.id" class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100">
-              <p class="text-xs text-gray-400 mb-1">{{ new Date(sim.timestamp).toLocaleString() }} &bull; {{ sim.llm_model }}</p>
-              <p class="font-medium text-gray-900 mb-2 truncate">{{ sim.scenario }}</p>
-              <div class="prose prose-sm text-gray-700 bg-gray-50 p-3 rounded-2xl max-h-32 overflow-hidden relative">
-                <div v-html="renderMarkdown(sim.response)"></div>
-                <div class="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-gray-50 to-transparent"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- TAB: SETTINGS -->
-        <div v-if="currentTab === 'settings'" class="space-y-6">
-          <div class="ios-section-title">LLM Configuration</div>
-          <div class="ios-group">
-            <div class="ios-cell">
-              <div class="min-w-0">
-                <div class="text-[13px] ios-muted font-semibold mb-1">Provider Preset</div>
-                <select v-model="settings.provider" @change="applyPreset" class="w-full p-2 bg-transparent outline-none">
-                  <option value="OpenAI">OpenAI (Default)</option>
-                  <option value="Anthropic">Anthropic</option>
-                  <option value="Custom">Custom / Local</option>
-                </select>
-              </div>
-            </div>
-            <div class="ios-sep"></div>
-            <div class="ios-cell">
-              <div class="min-w-0 w-full">
-                <div class="text-[13px] ios-muted font-semibold mb-1">Base URL</div>
-                <input type="text" v-model="settings.baseUrl" class="w-full bg-transparent outline-none">
-              </div>
-            </div>
-            <div class="ios-sep"></div>
-            <div class="ios-cell">
-              <div class="min-w-0 w-full">
-                <div class="text-[13px] ios-muted font-semibold mb-1">API Key (Stored Locally)</div>
-                <input type="password" v-model="settings.apiKey" placeholder="sk-..." class="w-full bg-transparent outline-none">
-              </div>
-            </div>
-            <div class="ios-sep"></div>
-            <div class="ios-cell">
-              <div class="min-w-0 w-full">
-                <div class="text-[13px] ios-muted font-semibold mb-1">Model Name</div>
-                <input type="text" v-model="settings.model" placeholder="gpt-4o" class="w-full bg-transparent outline-none">
-              </div>
-            </div>
-          </div>
-          <div class="ios-section-title">Prompt Engineering</div>
-          <div class="ios-group">
-            <div class="ios-cell items-start">
-              <div class="min-w-0 w-full">
-                <div class="text-[13px] ios-muted font-semibold mb-1">System Prompt</div>
-                <textarea v-model="settings.systemPrompt" rows="4" :placeholder="defaultSystemPrompt" class="w-full bg-transparent outline-none resize-none text-[15px] text-gray-700"></textarea>
-              </div>
-            </div>
-          </div>
-          <div class="h-6 mt-2">
-            <p v-if="settingsSaved" class="text-green-600 text-sm text-center font-medium transition-opacity duration-300"><i class="fa-solid fa-check"></i> Changes saved</p>
-            <p v-else class="text-gray-400 text-xs text-center font-medium">Changes save automatically</p>
-          </div>
-        </div>
-        <!-- TAB: ACCOUNT -->
-        <div v-if="currentTab === 'account'" class="flex flex-col h-full space-y-6">
-          <!-- Profile Header -->
-          <div class="flex flex-col items-center bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
-            <label class="relative cursor-pointer group">
-              <div class="w-28 h-28 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center border-4 border-white shadow-md">
-                <img v-if="userProfile.photo" :src="userProfile.photo" class="w-full h-full object-cover" />
-                <i v-else class="fa-solid fa-user text-5xl text-gray-300"></i>
-              </div>
-              <div class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <i class="fa-solid fa-camera text-white text-xl"></i>
-              </div>
-              <input type="file" accept="image/*" class="hidden" @change="onPhotoSelected">
-            </label>
-            <p class="text-[10px] text-gray-400 mt-2 uppercase tracking-wide font-semibold">Tap to upload photo</p>
-            <input type="text" v-model="userProfile.name" @input="saveProfile" placeholder="Enter your account name" class="mt-3 w-full text-center text-xl font-semibold text-gray-900 bg-transparent border-b border-transparent hover:border-gray-200 focus:border-blue-500 outline-none transition-colors pb-1 placeholder-gray-300">
-          </div>
-          <div class="ios-section-title">Account</div>
-          <!-- Menu Lines -->
-          <div class="ios-group">
-            <div class="ios-cell" @click="openHelpSheet">
-              <div class="flex items-center gap-3 min-w-0">
-                <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-                  <i class="fa-solid fa-circle-question text-lg"></i>
-                </div>
-                <div class="min-w-0">
-                  <span class="block font-semibold text-gray-800 text-[17px] truncate">Help / Guide</span>
-                  <span class="block text-[13px] ios-muted truncate">Learn how to use PersonaSim</span>
-                </div>
-              </div>
-              <i class="fa-solid fa-chevron-right text-gray-300 text-sm"></i>
-            </div>
-            <div v-if="devModeActive" class="ios-sep"></div>
-            <!-- Developer Tools Button (Visible only when devModeActive is true) -->
-            <div v-if="devModeActive" class="ios-cell" @click="openDevSheet">
-              <div class="flex items-center gap-3 min-w-0">
-                <div class="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center">
-                  <i class="fa-solid fa-code text-lg"></i>
-                </div>
-                <div class="min-w-0">
-                  <span class="block font-semibold text-gray-800 text-[17px] truncate">Developer Tools</span>
-                  <span class="block text-[13px] text-purple-500 truncate">Test Data & Diagnostics</span>
-                </div>
-              </div>
-              <i class="fa-solid fa-chevron-right text-gray-300 text-sm"></i>
-            </div>
-          </div>
-          <!-- Footer -->
-          <div class="mt-auto text-center pt-8 text-gray-400 text-xs space-y-1 pb-4">
-            <p class="font-medium text-gray-500">PersonaSim AI</p>
-            <p @click="handleVersionTap" class="cursor-pointer active:scale-95 transition-transform inline-block px-4 py-1 select-none">Version {{ appVersion }}</p>
-            <p>Build {{ appBuild }}</p>
           </div>
         </div>
       </div>
     </Transition>
-  </main>
-  <!-- Bottom Navigation Bar (iOS Style) -->
-  <nav v-show="!isKeyboardVisible" class="bg-white/90 backdrop-blur-lg border-t border-gray-200 pb-safe pt-2 px-6 flex justify-between items-center fixed bottom-0 w-full z-20">
-    <button @click="setTab('dashboard')" :class="currentTab === 'dashboard' ? 'text-blue-600' : 'text-gray-400'" class="flex flex-col items-center w-16">
-      <i class="fa-solid fa-house text-xl mb-1"></i>
-      <span class="text-[10px] font-medium">Home</span>
-    </button>
-    <button @click="setTab('personas')" :class="currentTab === 'personas' ? 'text-blue-600' : 'text-gray-400'" class="flex flex-col items-center w-16">
-      <i class="fa-solid fa-address-book text-xl mb-1"></i>
-      <span class="text-[10px] font-medium">Personas</span>
-    </button>
-    <button @click="setTab('simulate')" :class="currentTab === 'simulate' ? 'text-blue-600' : 'text-gray-400'" class="flex flex-col items-center w-16">
-      <i class="fa-solid fa-bolt text-xl mb-1"></i>
-      <span class="text-[10px] font-medium">Simulate</span>
-    </button>
-    <button @click="setTab('history')" :class="currentTab === 'history' ? 'text-blue-600' : 'text-gray-400'" class="flex flex-col items-center w-16">
-      <i class="fa-solid fa-clock-rotate-left text-xl mb-1"></i>
-      <span class="text-[10px] font-medium">History</span>
-    </button>
-    <button @click="setTab('settings')" :class="currentTab === 'settings' ? 'text-blue-600' : 'text-gray-400'" class="flex flex-col items-center w-16">
-      <i class="fa-solid fa-gear text-xl mb-1"></i>
-      <span class="text-[10px] font-medium">Settings</span>
-    </button>
-  </nav>
-  <!-- ===================== iOS BOTTOM SHEET: Persona Add/Edit Form ===================== -->
-  <Transition name="fade">
-    <div v-if="showForm" class="ios-backdrop z-50" @click="closeForm"></div>
-  </Transition>
-  <Transition name="sheet">
-    <div v-if="showForm" class="ios-sheet z-50" @click.stop
-         :class="{ 'is-dragging': sheetDrag.active && sheetDrag.target === 'form' }"
-         @touchstart="onSheetTouchStart($event, 'form')"
-         @touchmove="onSheetTouchMove($event, 'form')"
-         @touchend="onSheetTouchEnd('form')"
-         :style="formSheetStyle">
-      <div class="ios-sheet-inner">
-        <div class="ios-grabber"></div>
-        <div class="ios-sheet-header">
-          <button class="ios-nav-btn" @click="closeForm">Cancel</button>
-          <div class="ios-sheet-title">{{ editId ? 'Edit Persona' : 'New Persona' }}</div>
-          <button class="ios-nav-btn right" @click="savePersona">Save</button>
-        </div>
-        <div class="flex-1 overflow-y-auto p-4 space-y-4 pb-12">
-          <div class="ios-section-title">Basics</div>
-          <div class="ios-group">
-            <div class="ios-cell">
-              <div class="min-w-0 w-full">
-                <div class="text-[13px] ios-muted font-semibold mb-1">Full Name</div>
-                <input type="text" v-model="form.name" class="w-full bg-transparent outline-none" placeholder="e.g. Jordan Smith">
-              </div>
-            </div>
-            <div class="ios-sep"></div>
-            <div class="ios-cell">
-              <div class="min-w-0 w-full">
-                <div class="text-[13px] ios-muted font-semibold mb-1">Title / Role</div>
-                <input type="text" v-model="form.title" class="w-full bg-transparent outline-none" placeholder="e.g. Engineering Manager">
-              </div>
-            </div>
-            <div class="ios-sep"></div>
-            <div class="ios-cell">
-              <div class="min-w-0 w-full">
-                <div class="text-[13px] ios-muted font-semibold mb-1">Office / Location</div>
-                <input type="text" v-model="form.office" class="w-full bg-transparent outline-none" placeholder="e.g. Bothell HQ - 3rd Floor">
-              </div>
-            </div>
+    <!-- ===================== iOS BOTTOM SHEET: Help / Guide ===================== -->
+    <Transition name="fade">
+      <div v-if="showHelpModal" class="ios-backdrop z-50" @click="closeHelpSheet"></div>
+    </Transition>
+    <Transition name="sheet">
+      <div v-if="showHelpModal" class="ios-sheet z-50" @click.stop
+           :class="{ 'is-dragging': sheetDrag.active && sheetDrag.target === 'help' }"
+           @touchstart="onSheetTouchStart($event, 'help')"
+           @touchmove="onSheetTouchMove($event, 'help')"
+           @touchend="onSheetTouchEnd('help')"
+           :style="helpSheetStyle">
+        <div class="ios-sheet-inner">
+          <div class="ios-grabber"></div>
+          <div class="ios-sheet-header">
+            <button class="ios-nav-btn" @click="closeHelpSheet"><i class="fa-solid fa-chevron-left mr-1"></i> Back</button>
+            <div class="ios-sheet-title">Help / Guide</div>
+            <div style="min-width:70px;"></div>
           </div>
-          <div class="ios-section-title">Org Context</div>
-          <div class="ios-group">
-            <div class="ios-cell">
-              <div class="min-w-0 w-full">
-                <div class="text-[13px] ios-muted font-semibold mb-1">Superiors (comma separated)</div>
-                <input type="text" v-model="form.superiors" class="w-full bg-transparent outline-none" placeholder="e.g. Jane Director">
+          <div class="flex-1 overflow-y-auto p-4 pb-12 space-y-4">
+            <div class="ios-group">
+              <div class="ios-cell">
+                <div class="min-w-0 w-full">
+                  <h3 class="text-[20px] font-bold text-blue-600 mb-2">What is PersonaSim AI?</h3>
+                  <p class="text-gray-600 text-sm leading-relaxed mb-4">
+                    PersonaSim AI is a powerful simulation tool designed to help you anticipate how real people or teams will react to ideas, changes, or scenarios.
+                  </p>
+                  <h3 class="text-[17px] font-bold text-gray-800 mb-2 mt-3">How is it used?</h3>
+                  <ul class="text-gray-600 text-sm leading-relaxed space-y-2 list-disc pl-4 mb-4">
+                    <li><strong>Create Personas:</strong> Add team members, capturing their traits, likes, dislikes, and roles.</li>
+                    <li><strong>Select a Group:</strong> Choose specific individuals to participate in a simulation.</li>
+                    <li><strong>Run Scenarios:</strong> Pitch an idea, announcement, or question.</li>
+                    <li><strong>Get Insights:</strong> The AI analyzes the collective traits and predicts emotional reactions, risks, and optimal messaging strategies.</li>
+                  </ul>
+                  <h3 class="text-[17px] font-bold text-gray-800 mb-2 mt-3">Why is it useful?</h3>
+                  <p class="text-gray-600 text-sm leading-relaxed">
+                    Instead of guessing how a controversial policy or new project will land, you can test it safely. It reduces blind spots, improves communication, and builds stronger alignment before you actually hit "send" in the real world.
+                  </p>
+                </div>
               </div>
             </div>
-            <div class="ios-sep"></div>
-            <div class="ios-cell">
-              <div class="min-w-0 w-full">
-                <div class="text-[13px] ios-muted font-semibold mb-1">Direct Reports (comma separated)</div>
-                <input type="text" v-model="form.directReports" class="w-full bg-transparent outline-none" placeholder="e.g. John Doe, Sarah Smith">
-              </div>
+            <div class="text-center text-xs text-gray-400 px-2">
+              Tip: Add this app to your Home Screen for the best iOS-like experience.
             </div>
-          </div>
-          <div class="ios-section-title">Traits</div>
-          <div class="ios-group">
-            <div class="ios-cell items-start">
-              <div class="min-w-0 w-full">
-                <div class="text-[13px] ios-muted font-semibold mb-1">Likes</div>
-                <textarea v-model="form.likes" rows="2" placeholder="Coffee, clear specs, hiking" class="w-full bg-transparent outline-none resize-none"></textarea>
-              </div>
-            </div>
-            <div class="ios-sep"></div>
-            <div class="ios-cell items-start">
-              <div class="min-w-0 w-full">
-                <div class="text-[13px] ios-muted font-semibold mb-1">Dislikes</div>
-                <textarea v-model="form.dislikes" rows="2" placeholder="Micromanagement, surprises" class="w-full bg-transparent outline-none resize-none"></textarea>
-              </div>
-            </div>
-            <div class="ios-sep"></div>
-            <div class="ios-cell items-start">
-              <div class="min-w-0 w-full">
-                <div class="text-[13px] ios-muted font-semibold mb-1">Background / Bio</div>
-                <textarea v-model="form.background" rows="3" class="w-full bg-transparent outline-none resize-none" placeholder="Short bio..."></textarea>
-              </div>
-            </div>
-            <div class="ios-sep"></div>
-            <div class="ios-cell">
-              <div class="min-w-0 w-full">
-                <div class="text-[13px] ios-muted font-semibold mb-1">Tags (comma separated)</div>
-                <input type="text" v-model="form.tags" class="w-full bg-transparent outline-none" placeholder="introvert, remote, senior">
-              </div>
-            </div>
-          </div>
-          <button v-if="editId" @click="deletePersona(editId)" class="w-full bg-red-50 text-red-600 rounded-2xl py-3.5 font-semibold mt-2 active:bg-red-100">
-            Delete Persona
-          </button>
-        </div>
-      </div>
-    </div>
-  </Transition>
-  <!-- ===================== iOS BOTTOM SHEET: Help / Guide ===================== -->
-  <Transition name="fade">
-    <div v-if="showHelpModal" class="ios-backdrop z-50" @click="closeHelpSheet"></div>
-  </Transition>
-  <Transition name="sheet">
-    <div v-if="showHelpModal" class="ios-sheet z-50" @click.stop
-         :class="{ 'is-dragging': sheetDrag.active && sheetDrag.target === 'help' }"
-         @touchstart="onSheetTouchStart($event, 'help')"
-         @touchmove="onSheetTouchMove($event, 'help')"
-         @touchend="onSheetTouchEnd('help')"
-         :style="helpSheetStyle">
-      <div class="ios-sheet-inner">
-        <div class="ios-grabber"></div>
-        <div class="ios-sheet-header">
-          <button class="ios-nav-btn" @click="closeHelpSheet"><i class="fa-solid fa-chevron-left mr-1"></i> Back</button>
-          <div class="ios-sheet-title">Help / Guide</div>
-          <div style="min-width:70px;"></div>
-        </div>
-        <div class="flex-1 overflow-y-auto p-4 pb-12 space-y-4">
-          <div class="ios-group">
-            <div class="ios-cell">
-              <div class="min-w-0 w-full">
-                <h3 class="text-[20px] font-bold text-blue-600 mb-2">What is PersonaSim AI?</h3>
-                <p class="text-gray-600 text-sm leading-relaxed mb-4">
-                  PersonaSim AI is a powerful simulation tool designed to help you anticipate how real people or teams will react to ideas, changes, or scenarios.
-                </p>
-                <h3 class="text-[17px] font-bold text-gray-800 mb-2 mt-3">How is it used?</h3>
-                <ul class="text-gray-600 text-sm leading-relaxed space-y-2 list-disc pl-4 mb-4">
-                  <li><strong>Create Personas:</strong> Add team members, capturing their traits, likes, dislikes, and roles.</li>
-                  <li><strong>Select a Group:</strong> Choose specific individuals to participate in a simulation.</li>
-                  <li><strong>Run Scenarios:</strong> Pitch an idea, announcement, or question.</li>
-                  <li><strong>Get Insights:</strong> The AI analyzes the collective traits and predicts emotional reactions, risks, and optimal messaging strategies.</li>
-                </ul>
-                <h3 class="text-[17px] font-bold text-gray-800 mb-2 mt-3">Why is it useful?</h3>
-                <p class="text-gray-600 text-sm leading-relaxed">
-                  Instead of guessing how a controversial policy or new project will land, you can test it safely. It reduces blind spots, improves communication, and builds stronger alignment before you actually hit "send" in the real world.
-                </p>
-              </div>
-            </div>
-          </div>
-          <div class="text-center text-xs text-gray-400 px-2">
-            Tip: Add this app to your Home Screen for the best iOS-like experience.
           </div>
         </div>
       </div>
-    </div>
-  </Transition>
-  <!-- ===================== iOS BOTTOM SHEET: Developer Tools ===================== -->
-  <Transition name="fade">
-    <div v-if="showDevModal" class="ios-backdrop z-50" @click="closeDevSheet"></div>
-  </Transition>
-  <Transition name="sheet">
-    <div v-if="showDevModal" class="ios-sheet z-50" @click.stop
-         :class="{ 'is-dragging': sheetDrag.active && sheetDrag.target === 'dev' }"
-         @touchstart="onSheetTouchStart($event, 'dev')"
-         @touchmove="onSheetTouchMove($event, 'dev')"
-         @touchend="onSheetTouchEnd('dev')"
-         :style="devSheetStyle">
-      <div class="ios-sheet-inner">
-        <div class="ios-grabber"></div>
-        <div class="ios-sheet-header">
-          <button class="ios-nav-btn" @click="closeDevSheet"><i class="fa-solid fa-chevron-left mr-1"></i> Back</button>
-          <div class="ios-sheet-title"><span class="text-purple-700">Developer Tools</span></div>
-          <div style="min-width:70px;"></div>
-        </div>
-        <div class="flex-1 overflow-y-auto p-4 pb-12 space-y-4">
-          <div class="ios-group">
-            <div class="ios-cell">
-              <div class="min-w-0 w-full">
-                <h3 class="text-[17px] font-bold text-purple-600 mb-2"><i class="fa-solid fa-flask mr-1"></i> Test Database Mode</h3>
-                <p class="text-gray-600 text-sm leading-relaxed">
-                  Use this area to quickly populate your database with dummy personas. This allows you to test simulation queries, verify UI scaling for large teams, and test tagging filters without needing to manually input fake data.
-                </p>
+    </Transition>
+    <!-- ===================== iOS BOTTOM SHEET: Developer Tools ===================== -->
+    <Transition name="fade">
+      <div v-if="showDevModal" class="ios-backdrop z-50" @click="closeDevSheet"></div>
+    </Transition>
+    <Transition name="sheet">
+      <div v-if="showDevModal" class="ios-sheet z-50" @click.stop
+           :class="{ 'is-dragging': sheetDrag.active && sheetDrag.target === 'dev' }"
+           @touchstart="onSheetTouchStart($event, 'dev')"
+           @touchmove="onSheetTouchMove($event, 'dev')"
+           @touchend="onSheetTouchEnd('dev')"
+           :style="devSheetStyle">
+        <div class="ios-sheet-inner">
+          <div class="ios-grabber"></div>
+          <div class="ios-sheet-header">
+            <button class="ios-nav-btn" @click="closeDevSheet"><i class="fa-solid fa-chevron-left mr-1"></i> Back</button>
+            <div class="ios-sheet-title"><span class="text-purple-700">Developer Tools</span></div>
+            <div style="min-width:70px;"></div>
+          </div>
+          <div class="flex-1 overflow-y-auto p-4 pb-12 space-y-4">
+            <div class="ios-group">
+              <div class="ios-cell">
+                <div class="min-w-0 w-full">
+                  <h3 class="text-[17px] font-bold text-purple-600 mb-2"><i class="fa-solid fa-flask mr-1"></i> Test Database Mode</h3>
+                  <p class="text-gray-600 text-sm leading-relaxed">
+                    Use this area to quickly populate your database with dummy personas. This allows you to test simulation queries, verify UI scaling for large teams, and test tagging filters without needing to manually input fake data.
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="space-y-3">
-            <button @click="generateRandomPersonas" class="w-full bg-purple-600 text-white rounded-2xl py-4 font-semibold shadow-sm active:bg-purple-700 transition-colors flex justify-center items-center gap-2">
-              <i class="fa-solid fa-users-rays"></i> Generate Random Hierarchical Team
-            </button>
-            <button @click="devClearDatabase" class="w-full bg-red-50 text-red-600 rounded-2xl py-4 font-semibold shadow-sm active:bg-red-100 transition-colors flex justify-center items-center gap-2">
-              <i class="fa-solid fa-trash-can"></i> Clear All Database Data
-            </button>
-          </div>
-          <div v-if="devModeSummary" class="ios-group">
-            <div class="ios-cell">
-              <div class="min-w-0 w-full">
-                <p class="text-xs text-blue-500 font-bold uppercase tracking-wide mb-1">Action Log</p>
-                <p class="text-sm text-blue-800 font-medium">{{ devModeSummary }}</p>
+            <div class="space-y-3">
+              <button @click="generateRandomPersonas" class="w-full bg-purple-600 text-white rounded-2xl py-4 font-semibold shadow-sm active:bg-purple-700 transition-colors flex justify-center items-center gap-2">
+                <i class="fa-solid fa-users-rays"></i> Generate Random Hierarchical Team
+              </button>
+              <button @click="devClearDatabase" class="w-full bg-red-50 text-red-600 rounded-2xl py-4 font-semibold shadow-sm active:bg-red-100 transition-colors flex justify-center items-center gap-2">
+                <i class="fa-solid fa-trash-can"></i> Clear All Database Data
+              </button>
+            </div>
+            <div v-if="devModeSummary" class="ios-group">
+              <div class="ios-cell">
+                <div class="min-w-0 w-full">
+                  <p class="text-xs text-blue-500 font-bold uppercase tracking-wide mb-1">Action Log</p>
+                  <p class="text-sm text-blue-800 font-medium">{{ devModeSummary }}</p>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="pt-2">
-            <button @click="exitDevMode" class="w-full bg-gray-200 text-gray-700 rounded-2xl py-4 font-semibold shadow-sm active:bg-gray-300 transition-colors flex justify-center items-center gap-2">
-              <i class="fa-solid fa-door-open"></i> Exit Developer Mode
-            </button>
-            <p class="text-center text-xs text-gray-400 mt-3">This will hide this menu and return the app to normal operation.</p>
+            <div class="pt-2">
+              <button @click="exitDevMode" class="w-full bg-gray-200 text-gray-700 rounded-2xl py-4 font-semibold shadow-sm active:bg-gray-300 transition-colors flex justify-center items-center gap-2">
+                <i class="fa-solid fa-door-open"></i> Exit Developer Mode
+              </button>
+              <p class="text-center text-xs text-gray-400 mt-3">This will hide this menu and return the app to normal operation.</p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </Transition>
-  <!-- ===================== iOS ALERT (CENTER) ===================== -->
-  <Transition name="fade">
-    <div v-if="dialog.visible && dialog.type === 'alert'" class="ios-backdrop z-[60]" @click="dismissDialog(false)"></div>
-  </Transition>
-  <Transition name="pop">
-    <div v-if="dialog.visible && dialog.type === 'alert'" class="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none">
-      <div class="ios-alert pointer-events-auto" @click.stop>
-        <div class="ios-alert-body">
-          <div class="ios-alert-title">{{ dialog.title }}</div>
-          <div class="ios-alert-message">{{ dialog.message }}</div>
+    </Transition>
+    <!-- ===================== iOS ALERT (CENTER) ===================== -->
+    <Transition name="fade">
+      <div v-if="dialog.visible && dialog.type === 'alert'" class="ios-backdrop z-[60]" @click="dismissDialog(false)"></div>
+    </Transition>
+    <Transition name="pop">
+      <div v-if="dialog.visible && dialog.type === 'alert'" class="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none">
+        <div class="ios-alert pointer-events-auto" @click.stop>
+          <div class="ios-alert-body">
+            <div class="ios-alert-title">{{ dialog.title }}</div>
+            <div class="ios-alert-message">{{ dialog.message }}</div>
+          </div>
+          <div class="ios-alert-actions">
+            <button
+              v-for="(a, idx) in dialog.actions"
+              :key="idx"
+              class="ios-alert-btn"
+              :class="a.destructive ? 'destructive' : ''"
+              @click="dismissDialog(a.value)"
+            >
+              {{ a.text }}
+            </button>
+          </div>
         </div>
-        <div class="ios-alert-actions">
+      </div>
+    </Transition>
+    <!-- ===================== iOS ACTION SHEET (BOTTOM) ===================== -->
+    <Transition name="fade">
+      <div v-if="dialog.visible && dialog.type === 'sheet'" class="ios-backdrop z-[60]" @click="dismissDialog(false)"></div>
+    </Transition>
+    <Transition name="sheet">
+      <div v-if="dialog.visible && dialog.type === 'sheet'" class="fixed inset-x-0 bottom-0 z-[60] ios-action-sheet" @click.stop>
+        <div class="ios-action-card">
+          <div class="ios-action-title">
+            <div class="t">{{ dialog.title }}</div>
+            <div class="m">{{ dialog.message }}</div>
+          </div>
+          <div class="ios-action-sep"></div>
           <button
             v-for="(a, idx) in dialog.actions"
-            :key="idx"
-            class="ios-alert-btn"
+            :key="'a'+idx"
+            class="ios-action-btn"
             :class="a.destructive ? 'destructive' : ''"
             @click="dismissDialog(a.value)"
           >
             {{ a.text }}
           </button>
         </div>
-      </div>
-    </div>
-  </Transition>
-  <!-- ===================== iOS ACTION SHEET (BOTTOM) ===================== -->
-  <Transition name="fade">
-    <div v-if="dialog.visible && dialog.type === 'sheet'" class="ios-backdrop z-[60]" @click="dismissDialog(false)"></div>
-  </Transition>
-  <Transition name="sheet">
-    <div v-if="dialog.visible && dialog.type === 'sheet'" class="fixed inset-x-0 bottom-0 z-[60] ios-action-sheet" @click.stop>
-      <div class="ios-action-card">
-        <div class="ios-action-title">
-          <div class="t">{{ dialog.title }}</div>
-          <div class="m">{{ dialog.message }}</div>
+        <div class="ios-action-cancel">
+          <button class="ios-action-btn" @click="dismissDialog(false)">Cancel</button>
         </div>
-        <div class="ios-action-sep"></div>
-        <button
-          v-for="(a, idx) in dialog.actions"
-          :key="'a'+idx"
-          class="ios-action-btn"
-          :class="a.destructive ? 'destructive' : ''"
-          @click="dismissDialog(a.value)"
-        >
-          {{ a.text }}
-        </button>
       </div>
-      <div class="ios-action-cancel">
-        <button class="ios-action-btn" @click="dismissDialog(false)">Cancel</button>
-      </div>
-    </div>
-  </Transition>
+    </Transition>
+  </div>
 </div>
 <script>
   // Initialize Dexie (IndexedDB)
@@ -1157,11 +1179,14 @@
 
       // Check if running as an installed PWA (standalone mode)
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-      const isIos = /Mac|iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-      const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome|CriOS|FxiOS|EdgiOS/.test(navigator.userAgent);
+      
+      // Strict iOS Safari Detection (Ignores Chrome, Firefox, Edge, Opera on iOS)
+      const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
+      const isSafari = /Safari/i.test(navigator.userAgent) && !/CriOS|FxiOS|EdgiOS|Chrome|Edg|OPIOS/i.test(navigator.userAgent);
 
       // Show install hint on first visit ONLY if on iOS Safari and not already installed
-      if (isIos && isSafari && !isStandalone && !localStorage.getItem('installHintDismissed')) {
+      // Note: Changed the localStorage key to "v2" so it resets your memory and shows up for you again!
+      if (isIos && isSafari && !isStandalone && !localStorage.getItem('installHintDismissed_v2')) {
         this.showInstallHint = true;
       }
 
@@ -1572,7 +1597,7 @@
       },
       dismissInstallHint() {
         this.showInstallHint = false;
-        localStorage.setItem('installHintDismissed', 'true');
+        localStorage.setItem('installHintDismissed_v2', 'true');
       },
       /* ===================== FILTERING ===================== */
       getUniqueTags() {
